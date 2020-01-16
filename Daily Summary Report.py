@@ -33,6 +33,7 @@ except FileNotFoundError:   # This error is because though a filename is on the 
         wb = Workbook()
         print('Creating a new file')
 
+    work_sheet = wb.active
     work_sheet.title = calendar.month_name[Month] + ' 2020'  # TODO: make filename dependent
     my_shelf['SheetName'] = work_sheet.title
 except KeyError:    # This means that there is no filename on the shelf
@@ -49,10 +50,10 @@ except KeyError:    # This means that there is no filename on the shelf
     work_sheet.title = calendar.month_name[Month] + ' 2020'  # TODO: make filename dependent
     my_shelf['SheetName'] = work_sheet.title
 
-EmpFolder = 'Reports/EMP Disc 1.12-1.14.xlsx'
+EmpFolder = 'Reports/EMP Disc 1.12-1.15.xlsx'
 
-TenderedHigherNames = pd.read_excel('Reports/Tender 1.12-1.14.xlsx', skiprows=4).columns
-Tendered = pd.read_excel('Reports/Tender 1.12-1.14.xlsx', skiprows=7)
+TenderedHigherNames = pd.read_excel('Reports/Tender 1.12-1.15.xlsx', skiprows=4).columns
+Tendered = pd.read_excel('Reports/Tender 1.12-1.15.xlsx', skiprows=7)
 Tendered = Tendered.set_index(['Unnamed: 0'])
 Tendered.index = pd.Series(Tendered.index).fillna(method='ffill')
 
@@ -62,18 +63,18 @@ EmpDisc = EmpDisc.set_index(['Store Name'])
 Tax = pd.read_excel('Reports/Tax Rate.xlsx')
 Tax = Tax.set_index(['Headquarters'])
 
-Tax_Exempt = pd.read_excel('Reports/No tax 1.12-1.14.xlsx')
+Tax_Exempt = pd.read_excel('Reports/No tax 1.12-1.15.xlsx')
 Tax_Exempt = Tax_Exempt.set_index(['Store Name'])
 
-CreditMemo = pd.read_excel('Reports/CM report 1.12-1.14.xlsx')
+CreditMemo = pd.read_excel('Reports/CM report 1.12-1.15.xlsx')
 CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
 CreditMemo = CreditMemo.astype({'Invoice #': 'int'})
 CreditMemo = CreditMemo.set_index('Invoice #')
 
-PurchasedGC = pd.read_excel('Reports/Purchased GC 1.12-1.14.xlsx')
+PurchasedGC = pd.read_excel('Reports/Purchased GC 1.12-1.15.xlsx')
 PurchasedGC = PurchasedGC.set_index('Store Name')
 
-RedeemedGC = pd.read_excel('Reports/Redeemed GC 1.12-1.14.xlsx')
+RedeemedGC = pd.read_excel('Reports/Redeemed GC 1.12-1.15.xlsx')
 RedeemedGC = RedeemedGC.set_index('Store Name')
 
 Locations = ['Alexandria', 'Asheville', 'Austin', 'Baton Rouge', 'Birmingham', 'Boston', 'Buckhead', 'Charleston',
