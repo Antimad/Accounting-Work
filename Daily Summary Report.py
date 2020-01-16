@@ -16,29 +16,42 @@ my_shelf = shelve.open(shelf_files)
 Year = datetime.datetime.now().year
 Month = datetime.datetime.now().month
 try:
-    filename = my_shelf['current_file'] + '.xlsx'
+    filename = my_shelf['current_file']
     wb = load_workbook(filename)
     print('Using the existing file')
+    work_sheet = wb.active
 except FileNotFoundError:   # This error is because though a filename is on the shelf, but it isn't in the folder
     # TODO: Ask for a new filename
     print('%s was the last one used, but can\'t be found, please end this program and '
           'save it in the folder, or create a new file name' % filename)
     filename = input() + '.xlsx'
     my_shelf['current_file'] = filename
-    wb = Workbook()
-    print('Creating a new file')
+    try:
+        wb = load_workbook(filename)
+        print('Found the file')
+    except FileNotFoundError:
+        wb = Workbook()
+        print('Creating a new file')
+
+    work_sheet.title = calendar.month_name[Month] + ' 2020'  # TODO: make filename dependent
+    my_shelf['SheetName'] = work_sheet.title
 except KeyError:    # This means that there is no filename on the shelf
     # TODO: Ask for a new filename
     filename = input('What is the filename you would like to use?') + '.xlsx'
     my_shelf['current_file'] = filename
-    wb = Workbook()
+    try:
+        wb = load_workbook(filename)
+        print('Found the file')
+    except FileNotFoundError:
+        wb = Workbook()
+        print('Creating a new file')
     work_sheet = wb.active
     work_sheet.title = calendar.month_name[Month] + ' 2020'  # TODO: make filename dependent
     my_shelf['SheetName'] = work_sheet.title
 
-EmpFolder = 'Reports/EMP Disc 1.2.xlsx'
+EmpFolder = 'Reports/EMP Disc 1.12-1.14.xlsx'
 
-TenderedHigherNames = pd.read_excel('Reports/Tender 1.2.xlsx', skiprows=4).columns
+TenderedHigherNames = pd.read_excel('Reports/Tender 1.12-1.14.xlsx', skiprows=4).columns
 Tendered = pd.read_excel('Reports/Tender 1.12-1.14.xlsx', skiprows=7)
 Tendered = Tendered.set_index(['Unnamed: 0'])
 Tendered.index = pd.Series(Tendered.index).fillna(method='ffill')
@@ -297,7 +310,7 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                   font=Normal, number_format=Currency)
 
         UnTaxed = 0
-        if ('Los Angeles' != Bank) and ('San Antonio' != Bank):
+        if Bank in Tendered.index:
             try:
                 UnTaxed = Memo = 0
                 for TaxFree in range(len(Tax_Exempt['Date'][Bank])):
@@ -562,6 +575,4 @@ work_sheet.add_table(tab)
 """
 
 worksheet.dimensions.ColumnDimension(work_sheet, bestFit=True)
-# xwwb.save(folder)
-# app.kill()
 wb.save(filename=filename)
