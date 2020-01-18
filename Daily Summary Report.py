@@ -53,11 +53,11 @@ except KeyError:    # This means that there is no filename on the shelf
 
 TenderReport = 'Reports/Tender 1.2-1.6.xlsx'
 TaxRate = 'Tax Rate.xlsx'
-EmpSales = 'Reports/EMP Disc 1.12-1.15.xlsx'
-TaxFreeSales = ''
-CM_Sales_Issuance = ''
-GC_Sales = ''
-GC_Used = ''
+EmpSales = 'Reports/EMP sale 1.2-1.6.xlsx'
+TaxFreeSales = 'Reports/No tax 1.2-1.6.xls'
+CM_Sales_Issuance = 'Reports/CM report 1.2-1.6.xlsx'
+GC_Sales = 'Reports/Purchased GC 1.2-1.6.xls'
+GC_Used = 'Reports/Redeemed GC 1.2-1.6.xls'
 
 if TenderReport:
     TenderedHigherNames = pd.read_excel(TenderReport, skiprows=4).columns
@@ -76,6 +76,13 @@ if TenderReport:
 
     CreditMemo = pd.read_excel(CM_Sales_Issuance)
     CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
+    invoices = []
+    for x in range(len(CreditMemo)):
+        try:
+            invoices.append(CreditMemo['Invoice #'][x].split()[0])
+        except AttributeError:
+            invoices.append(CreditMemo['Invoice #'][x])
+    CreditMemo['Invoice #'] = invoices
     CreditMemo = CreditMemo.astype({'Invoice #': 'int'})
     CreditMemo = CreditMemo.set_index('Invoice #')
 
@@ -372,9 +379,7 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                 pass
 
             for data in range(len(Tendered['Date'][Bank])):
-                zeros = []
-                for Oss in range(len(Tendered.columns)):
-                    zeros.append(0)
+
                 if Date == pd.to_datetime(Tendered['Date'][Bank].iat[data]):
                     # Cash Total
                     title(text=Tendered['Cash'][Bank].iat[data], working_cell=('D' + Row), font=Normal,
