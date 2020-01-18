@@ -14,13 +14,13 @@ from PyQt5.QtGui import QIcon
 
 
 class App(QWidget):
-    def __int__(self):
+    def __init__(self):
         super().__init__()
         self.title = 'DSR File Selector'
-        self.left = 10
-        self.top = 10
-        self.width = 640
-        self.height = 480
+        self.left = 50
+        self.top = 50
+        self.width = 500
+        self.height = 750
         self.initUI()
 
     def initUI(self):
@@ -36,26 +36,26 @@ class App(QWidget):
     def openFileNameDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self, 'Select File 1', '', 'All Files (*);;Excel Files (*.xlsx)',
-                                                  options=options)
+        fileName, _ = QFileDialog.getOpenFileName(self, "First File", "",
+                                                  "All Files (*);;Python Files (*.py)", options=options)
         if fileName:
             print(fileName)
 
     def openFileNamesDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        files, _ = QFileDialog.getOpenFileNames(self, 'Select Multiple files', '', 'All Files (*);;Excel Files (.xlsx)',
-                                                options=options)
+        files, _ = QFileDialog.getOpenFileNames(self, "Second File", "",
+                                                "All Files (*);;Python Files (*.py)", options=options)
         if files:
             print(files)
 
     def saveFileDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getSaveFileName(self, 'Get the saved filename', '',
-                                                  'All Files (*);; Text Files (*.txt)', options=options)
+        fileName, _ = QFileDialog.getSaveFileName(self, "Save Location", "",
+                                                  "All Files (*);;Text Files (*.txt)", options=options)
         if fileName:
-            print(filename)
+            print(fileName)
 
 
 if __name__ == '__main__':
