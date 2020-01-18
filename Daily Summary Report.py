@@ -36,16 +36,32 @@ class App(QWidget):
     def openFileNameDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileNames(self, 'Select File 1', '', 'All Files (*);;Excel Files (*.xlsx)',
-                                                   options=options)
+        fileName, _ = QFileDialog.getOpenFileName(self, 'Select File 1', '', 'All Files (*);;Excel Files (*.xlsx)',
+                                                  options=options)
         if fileName:
             print(fileName)
 
     def openFileNamesDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        files, _ = QFileDialog.getOpenFileNames(self, )
+        files, _ = QFileDialog.getOpenFileNames(self, 'Select Multiple files', '', 'All Files (*);;Excel Files (.xlsx)',
+                                                options=options)
+        if files:
+            print(files)
 
+    def saveFileDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getSaveFileName(self, 'Get the saved filename', '',
+                                                  'All Files (*);; Text Files (*.txt)', options=options)
+        if fileName:
+            print(filename)
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = App()
+    sys.exit(app.exec_())
 
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
