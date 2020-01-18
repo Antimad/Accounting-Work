@@ -8,6 +8,44 @@ import calendar
 import datetime
 import numpy as np
 import shelve
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
+from PyQt5.QtGui import QIcon
+
+
+class App(QWidget):
+    def __int__(self):
+        super().__init__()
+        self.title = 'DSR File Selector'
+        self.left = 10
+        self.top = 10
+        self.width = 640
+        self.height = 480
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+
+        self.openFileNameDialog()
+        self.openFileNamesDialog()
+        self.saveFileDialog()
+
+        self.show()
+
+    def openFileNameDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileNames(self, 'Select File 1', '', 'All Files (*);;Excel Files (*.xlsx)',
+                                                   options=options)
+        if fileName:
+            print(fileName)
+
+    def openFileNamesDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        files, _ = QFileDialog.getOpenFileNames(self, )
+
 
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
@@ -59,7 +97,7 @@ CM_Sales_Issuance = 'Reports/CM report 1.2-1.6.xlsx'
 GC_Sales = 'Reports/Purchased GC 1.2-1.6.xls'
 GC_Used = 'Reports/Redeemed GC 1.2-1.6.xls'
 
-if TenderReport:
+while TenderReport:
     TenderedHigherNames = pd.read_excel(TenderReport, skiprows=4).columns
     Tendered = pd.read_excel(TenderReport, skiprows=7)
     Tendered = Tendered.set_index(['Unnamed: 0'])
@@ -76,14 +114,18 @@ if TenderReport:
 
     CreditMemo = pd.read_excel(CM_Sales_Issuance)
     CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
-    invoices = []
-    for x in range(len(CreditMemo)):
-        try:
-            invoices.append(CreditMemo['Invoice #'][x].split()[0])
-        except AttributeError:
-            invoices.append(CreditMemo['Invoice #'][x])
-    CreditMemo['Invoice #'] = invoices
-    CreditMemo = CreditMemo.astype({'Invoice #': 'int'})
+    try:
+        CreditMemo = CreditMemo.astype({'Invoice #': 'int'})
+        CreditMemo = CreditMemo.set_index('Invoice #')
+    except ValueError:
+        invoices = []
+        for x in range(len(CreditMemo)):
+            try:
+                invoices.append(CreditMemo['Invoice #'][x].split()[0])
+            except AttributeError:
+                invoices.append(CreditMemo['Invoice #'][x])
+        CreditMemo['Invoice #'] = invoices
+
     CreditMemo = CreditMemo.set_index('Invoice #')
 
     PurchasedGC = pd.read_excel(GC_Sales)
