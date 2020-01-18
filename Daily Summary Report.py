@@ -9,7 +9,6 @@ import datetime
 import numpy as np
 import shelve
 
-# testing link
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
 
@@ -23,6 +22,7 @@ try:
     work_sheet = wb.active
 except FileNotFoundError:   # This error is because though a filename is on the shelf, but it isn't in the folder
     # TODO: Ask for a new filename
+    filename = my_shelf['current_file']
     print('%s was the last one used, but can\'t be found, please end this program and '
           'save it in the folder, or create a new file name' % filename)
     filename = input() + '.xlsx'
@@ -51,32 +51,39 @@ except KeyError:    # This means that there is no filename on the shelf
     work_sheet.title = calendar.month_name[Month] + ' 2020'  # TODO: make filename dependent
     my_shelf['SheetName'] = work_sheet.title
 
-EmpFolder = 'Reports/EMP Disc 1.12-1.15.xlsx'
+TenderReport = 'Reports/Tender 1.2-1.6.xlsx'
+TaxRate = 'Tax Rate.xlsx'
+EmpSales = 'Reports/EMP Disc 1.12-1.15.xlsx'
+TaxFreeSales = ''
+CM_Sales_Issuance = ''
+GC_Sales = ''
+GC_Used = ''
 
-TenderedHigherNames = pd.read_excel('Reports/Tender 1.12-1.15.xlsx', skiprows=4).columns
-Tendered = pd.read_excel('Reports/Tender 1.12-1.15.xlsx', skiprows=7)
-Tendered = Tendered.set_index(['Unnamed: 0'])
-Tendered.index = pd.Series(Tendered.index).fillna(method='ffill')
+if TenderReport:
+    TenderedHigherNames = pd.read_excel(TenderReport, skiprows=4).columns
+    Tendered = pd.read_excel(TenderReport, skiprows=7)
+    Tendered = Tendered.set_index(['Unnamed: 0'])
+    Tendered.index = pd.Series(Tendered.index).fillna(method='ffill')
 
-EmpDisc = pd.read_excel(EmpFolder)
-EmpDisc = EmpDisc.set_index(['Store Name'])
+    EmpDisc = pd.read_excel(EmpSales)
+    EmpDisc = EmpDisc.set_index(['Store Name'])
 
-Tax = pd.read_excel('Reports/Tax Rate.xlsx')
-Tax = Tax.set_index(['Headquarters'])
+    Tax = pd.read_excel(TaxRate)
+    Tax = Tax.set_index(['Headquarters'])
 
-Tax_Exempt = pd.read_excel('Reports/No tax 1.12-1.15.xlsx')
-Tax_Exempt = Tax_Exempt.set_index(['Store Name'])
+    Tax_Exempt = pd.read_excel(TaxFreeSales)
+    Tax_Exempt = Tax_Exempt.set_index(['Store Name'])
 
-CreditMemo = pd.read_excel('Reports/CM report 1.12-1.15.xlsx')
-CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
-CreditMemo = CreditMemo.astype({'Invoice #': 'int'})
-CreditMemo = CreditMemo.set_index('Invoice #')
+    CreditMemo = pd.read_excel(CM_Sales_Issuance)
+    CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
+    CreditMemo = CreditMemo.astype({'Invoice #': 'int'})
+    CreditMemo = CreditMemo.set_index('Invoice #')
 
-PurchasedGC = pd.read_excel('Reports/Purchased GC 1.12-1.15.xlsx')
-PurchasedGC = PurchasedGC.set_index('Store Name')
+    PurchasedGC = pd.read_excel(GC_Sales)
+    PurchasedGC = PurchasedGC.set_index('Store Name')
 
-RedeemedGC = pd.read_excel('Reports/Redeemed GC 1.12-1.15.xlsx')
-RedeemedGC = RedeemedGC.set_index('Store Name')
+    RedeemedGC = pd.read_excel(GC_Used)
+    RedeemedGC = RedeemedGC.set_index('Store Name')
 
 Locations = ['Alexandria', 'Asheville', 'Austin', 'Baton Rouge', 'Birmingham', 'Boston', 'Buckhead', 'Charleston',
              'Charlotte', 'Chattanooga', 'Chicago', 'Cincinnati', 'Columbia', 'Dallas', 'Detroit', 'Fort Worth',
@@ -312,6 +319,8 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                   font=Normal, number_format=Currency)
 
         UnTaxed = 0
+        GCsPurchased = 0
+        GCsRedeemed = 0
         if Bank in Tendered.index:
             try:
                 UnTaxed = Memo = 0
@@ -489,7 +498,6 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                           number_format=Currency)
                             except KeyError:
                                 pass
-
     # Full month's total calculations
     CellValue += 1
     title(text=(Locations_Key[str(Bank)].split(' ')[0] + ' Total'), working_cell=('A' + str(CellValue)), font=Bold,
@@ -549,7 +557,7 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
     RED = 'AA0000'
     babyBLUE = '00ABFF'
     YELLOW = 'FFFF00'
-
+    # CurrentTax = globals().get('CurrentTax')
     if CurrentTax > 0:
         rule = ColorScaleRule(start_type='num', start_value=CurrentTax - 0.01, start_color=RED,
                               mid_type='num', mid_value=CurrentTax, mid_color=babyBLUE,
@@ -567,14 +575,6 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
         cell.border = RowBorderSeparator
 
     CellValue += 1
-
-"""
-tab = Table(displayName='Table1', ref=('A3:AH' + str(CellValue)))
-style = TableStyleInfo(name='TableStyleLight2', showFirstColumn=False, showLastColumn=False, showRowStripes=True,
-                       showColumnStripes=False)
-tab.tableStyleInfo = style
-work_sheet.add_table(tab)
-"""
 
 worksheet.dimensions.ColumnDimension(work_sheet, bestFit=True)
 wb.save(filename=filename)
