@@ -36,8 +36,8 @@ class App(QWidget):
     def openFileNameDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self, "First File", "",
-                                                  "All Files (*);;Python Files (*.py)", options=options)
+        fileName, _ = QFileDialog.getOpenFileName(self, "Excel File", "",
+                                                  "All Files (*);;Excel Files (*.xlsx)", options=options)
         if fileName:
             print(fileName)
 
@@ -57,11 +57,6 @@ class App(QWidget):
         if fileName:
             print(fileName)
 
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = App()
-    sys.exit(app.exec_())
 
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
@@ -130,6 +125,7 @@ while TenderReport:
 
     CreditMemo = pd.read_excel(CM_Sales_Issuance)
     CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
+
     try:
         CreditMemo = CreditMemo.astype({'Invoice #': 'int'})
         CreditMemo = CreditMemo.set_index('Invoice #')
@@ -639,5 +635,9 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
 
     CellValue += 1
 
-worksheet.dimensions.ColumnDimension(work_sheet, bestFit=True)
-wb.save(filename=filename)
+if __name__ == '__main__':
+    worksheet.dimensions.ColumnDimension(work_sheet, bestFit=True)
+    wb.save(filename=filename)
+    app = QApplication(sys.argv)
+    ex = App()
+    sys.exit(app.exec_())
