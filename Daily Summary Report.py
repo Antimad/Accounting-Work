@@ -12,7 +12,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
 from PyQt5.QtGui import QIcon
 
-
+"""
 class App(QWidget):
     def __init__(self):
         super().__init__()
@@ -56,7 +56,7 @@ class App(QWidget):
                                                   "All Files (*);;Text Files (*.txt)", options=options)
         if fileName:
             print(fileName)
-
+"""
 
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
@@ -100,51 +100,51 @@ except KeyError:    # This means that there is no filename on the shelf
     work_sheet.title = calendar.month_name[Month] + ' 2020'  # TODO: make filename dependent
     my_shelf['SheetName'] = work_sheet.title
 
-TenderReport = 'Reports/Tender 1.2-1.6.xlsx'
+TenderReport = 'Reports/Tender 1.16-1.22.xlsx'
 TaxRate = 'Tax Rate.xlsx'
-EmpSales = 'Reports/EMP sale 1.2-1.6.xlsx'
-TaxFreeSales = 'Reports/No tax 1.2-1.6.xls'
-CM_Sales_Issuance = 'Reports/CM report 1.2-1.6.xlsx'
-GC_Sales = 'Reports/Purchased GC 1.2-1.6.xls'
-GC_Used = 'Reports/Redeemed GC 1.2-1.6.xls'
+EmpSales = 'Reports/EMP Disc 1.16-1.22.xlsx'
+TaxFreeSales = 'Reports/No Tax 1.16-1.22.xlsx'
+CM_Sales_Issuance = 'Reports/CM report 1.16-1.22.xlsx'
+GC_Sales = 'Reports/Purchased GC 1.16-1.22.xlsx'
+GC_Used = 'Reports/Redeemed GC 1.16-1.22.xlsx'
 
-while TenderReport:
-    TenderedHigherNames = pd.read_excel(TenderReport, skiprows=4).columns
-    Tendered = pd.read_excel(TenderReport, skiprows=7)
-    Tendered = Tendered.set_index(['Unnamed: 0'])
-    Tendered.index = pd.Series(Tendered.index).fillna(method='ffill')
 
-    EmpDisc = pd.read_excel(EmpSales)
-    EmpDisc = EmpDisc.set_index(['Store Name'])
+TenderedHigherNames = pd.read_excel(TenderReport, skiprows=4).columns
+Tendered = pd.read_excel(TenderReport, skiprows=7)
+Tendered = Tendered.set_index(['Unnamed: 0'])
+Tendered.index = pd.Series(Tendered.index).fillna(method='ffill')
 
-    Tax = pd.read_excel(TaxRate)
-    Tax = Tax.set_index(['Headquarters'])
+EmpDisc = pd.read_excel(EmpSales)
+EmpDisc = EmpDisc.set_index(['Store Name'])
 
-    Tax_Exempt = pd.read_excel(TaxFreeSales)
-    Tax_Exempt = Tax_Exempt.set_index(['Store Name'])
+Tax = pd.read_excel(TaxRate)
+Tax = Tax.set_index(['Headquarters'])
 
-    CreditMemo = pd.read_excel(CM_Sales_Issuance)
-    CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
+Tax_Exempt = pd.read_excel(TaxFreeSales)
+Tax_Exempt = Tax_Exempt.set_index(['Store Name'])
 
-    try:
-        CreditMemo = CreditMemo.astype({'Invoice #': 'int'})
-        CreditMemo = CreditMemo.set_index('Invoice #')
-    except ValueError:
-        invoices = []
-        for x in range(len(CreditMemo)):
-            try:
-                invoices.append(CreditMemo['Invoice #'][x].split()[0])
-            except AttributeError:
-                invoices.append(CreditMemo['Invoice #'][x])
-        CreditMemo['Invoice #'] = invoices
+CreditMemo = pd.read_excel(CM_Sales_Issuance)
+CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
 
+try:
+    CreditMemo = CreditMemo.astype({'Invoice #': 'int'})
+    CreditMemo = CreditMemo.set_index('Invoice #')
+except ValueError:
+    invoices = []
+    for x in range(len(CreditMemo)):
+        try:
+            invoices.append(CreditMemo['Invoice #'][x].split()[0])
+        except AttributeError:
+            invoices.append(CreditMemo['Invoice #'][x])
+    CreditMemo['Invoice #'] = invoices
     CreditMemo = CreditMemo.set_index('Invoice #')
 
-    PurchasedGC = pd.read_excel(GC_Sales)
-    PurchasedGC = PurchasedGC.set_index('Store Name')
+PurchasedGC = pd.read_excel(GC_Sales)
+PurchasedGC = PurchasedGC.set_index('Store Name')
 
-    RedeemedGC = pd.read_excel(GC_Used)
-    RedeemedGC = RedeemedGC.set_index('Store Name')
+RedeemedGC = pd.read_excel(GC_Used)
+RedeemedGC = RedeemedGC.set_index('Store Name')
+
 
 Locations = ['Alexandria', 'Asheville', 'Austin', 'Baton Rouge', 'Birmingham', 'Boston', 'Buckhead', 'Charleston',
              'Charlotte', 'Chattanooga', 'Chicago', 'Cincinnati', 'Columbia', 'Dallas', 'Detroit', 'Fort Worth',
@@ -638,6 +638,8 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
 if __name__ == '__main__':
     worksheet.dimensions.ColumnDimension(work_sheet, bestFit=True)
     wb.save(filename=filename)
+    """
     app = QApplication(sys.argv)
     ex = App()
     sys.exit(app.exec_())
+    """
