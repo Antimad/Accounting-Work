@@ -9,54 +9,50 @@ import datetime
 import numpy as np
 import shelve
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QFileDialog, QMainWindow, QLabel
+from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QDesktopWidget
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 
-"""
-class App(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.title = 'DSR File Selector'
-        self.left = 50
-        self.top = 50
-        self.width = 500
-        self.height = 750
-        self.initUI()
 
-    def initUI(self):
+class MainWindow(QWidget):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        self.title = 'DSR File Selector'
+        self.left = 10
+        self.top = 10
+        self.width = 320
+        self.height = 200
+        self.init_ui()
+
+    def init_ui(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-        self.openFileNameDialog()
-        self.openFileNamesDialog()
-        self.saveFileDialog()
+        # Moving Window to the center of the screen
+        qtRectangle = self.frameGeometry()
+        centerPoint = QDesktopWidget().availableGeometry().center()
+        qtRectangle.moveCenter(centerPoint)
+        self.move(qtRectangle.topLeft())
 
-        self.show()
+        button = QPushButton('Press this one', self)
+        button.setToolTip('Please look for the file')
+        button.move(100, 70)
+        button.clicked.connect(self.search_file)
 
-    def openFileNameDialog(self):
+    def search_file(self):
         options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self, "Excel File", "",
-                                                  "All Files (*);;Excel Files (*.xlsx)", options=options)
-        if fileName:
-            print(fileName)
+        find_file, _ = QFileDialog.getOpenFileName(self, 'DSR File 1', '', 'Excel 2003 or older (*xls);;'
+                                                                           'Excel Files (*.xlsx)', options=options)
 
-    def openFileNamesDialog(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        files, _ = QFileDialog.getOpenFileNames(self, "Second File", "",
-                                                "All Files (*);;Python Files (*.py)", options=options)
-        if files:
-            print(files)
 
-    def saveFileDialog(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getSaveFileName(self, "Save Location", "",
-                                                  "All Files (*);;Text Files (*.txt)", options=options)
-        if fileName:
-            print(fileName)
-"""
+app = QApplication(sys.argv)
+
+window = MainWindow()
+window.show()
+
+app.exec_()
+sys.exit()
 
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
