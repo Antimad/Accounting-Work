@@ -9,10 +9,16 @@ import datetime
 import numpy as np
 import shelve
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QFileDialog, QMainWindow, QLabel
-from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QDesktopWidget
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QDesktopWidget, QGridLayout)
+
+files = ['Tender',
+         'Employee Discount',
+         'Tax Free Sales',
+         'Purchased GCs',
+         'Redeemed GCs',
+         'Credit Memos',]
+
+coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
 
 
 class MainWindow(QWidget):
@@ -35,15 +41,26 @@ class MainWindow(QWidget):
         qtRectangle.moveCenter(centerPoint)
         self.move(qtRectangle.topLeft())
 
-        button = QPushButton('Press this one', self)
-        button.setToolTip('Please look for the file')
-        button.move(100, 70)
-        button.clicked.connect(self.search_file)
+        grid = QGridLayout()
+        self.setLayout(grid)
+        for coordinate, file in zip(coordinates, files):
+            if file == '':
+                continue
+            fileSearchButton = QPushButton(file)
+            grid.addWidget(fileSearchButton, *coordinate)
+            fileSearchButton.clicked.connect(self.search_file)
 
     def search_file(self):
         options = QFileDialog.Options()
-        find_file, _ = QFileDialog.getOpenFileName(self, 'DSR File 1', '', 'Excel 2003 or older (*xls);;'
-                                                                           'Excel Files (*.xlsx)', options=options)
+        find_file, _ = QFileDialog.getOpenFileName(self, 'DSR File 1', '',
+                                                   'Excel Files (*.xlsx *xls)',
+                                                   options=options)
+        print(find_file)
+
+    def get_directory(self):
+        dialog = QFileDialog()
+        folder_path = dialog.getExistingDirectory(None, 'Select Folder with ALL 6 Files')
+        return folder_path
 
 
 app = QApplication(sys.argv)
@@ -52,6 +69,7 @@ window = MainWindow()
 window.show()
 
 app.exec_()
+breakpoint()
 sys.exit()
 
 shelf_files = 'shelve.out'
@@ -127,9 +145,9 @@ try:
     CreditMemo = CreditMemo.set_index('Invoice #')
 except ValueError:
     invoices = []
-    for x in range(len(CreditMemo)):
+    for CMs in range(len(CreditMemo)):
         try:
-            invoices.append(CreditMemo['Invoice #'][x].split()[0])
+            invoices.append(CreditMemo['Invoice #'][CMs].split()[0])
         except AttributeError:
             invoices.append(CreditMemo['Invoice #'][x])
     CreditMemo['Invoice #'] = invoices
