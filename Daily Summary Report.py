@@ -16,7 +16,8 @@ files = ['Tender',
          'Tax Free Sales',
          'Purchased GCs',
          'Redeemed GCs',
-         'Credit Memos',]
+         'Credit Memos',
+         'FOLDER CONTAINING ALL FILES...']
 
 coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
 
@@ -46,9 +47,15 @@ class MainWindow(QWidget):
         for coordinate, file in zip(coordinates, files):
             if file == '':
                 continue
-            fileSearchButton = QPushButton(file)
-            grid.addWidget(fileSearchButton, *coordinate)
-            fileSearchButton.clicked.connect(self.search_file)
+            if file == 'FOLDER CONTAINING ALL FILES...':
+                fileDirectoryButton = QPushButton(file)
+                grid.addWidget(fileDirectoryButton, *coordinate)
+                fileDirectoryButton.clicked.connect(self.get_directory)
+
+            else:
+                fileSearchButton = QPushButton(file)
+                grid.addWidget(fileSearchButton, *coordinate)
+                fileSearchButton.clicked.connect(self.search_file)
 
     def search_file(self):
         options = QFileDialog.Options()
@@ -59,7 +66,7 @@ class MainWindow(QWidget):
 
     def get_directory(self):
         dialog = QFileDialog()
-        folder_path = dialog.getExistingDirectory(None, 'Select Folder with ALL 6 Files')
+        folder_path = dialog.getExistingDirectory(self, None, 'Select Folder with ALL 6 Files')
         return folder_path
 
 
