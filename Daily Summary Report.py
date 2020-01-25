@@ -20,6 +20,7 @@ files = ['Tender',
          'FOLDER CONTAINING ALL FILES...']
 
 coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
+FileLocations = {'File Name': [], 'Location': []}
 
 
 class MainWindow(QWidget):
@@ -62,12 +63,12 @@ class MainWindow(QWidget):
         find_file, _ = QFileDialog.getOpenFileName(self, 'DSR File 1', '',
                                                    'Excel Files (*.xlsx *xls)',
                                                    options=options)
-        print(find_file)
 
     def get_directory(self):
         dialog = QFileDialog()
         folder_path = dialog.getExistingDirectory(self, None, 'Select Folder with ALL 6 Files')
-        return folder_path
+        FileLocations['File Name'].append('Directory')
+        FileLocations['Location'].append(folder_path)
 
 
 app = QApplication(sys.argv)
