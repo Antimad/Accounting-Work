@@ -1,7 +1,7 @@
-from openpyxl import load_workbook, Workbook
-from openpyxl import worksheet
+from openpyxl import load_workbook, Workbook, worksheet
 from openpyxl.styles import Font, Border, Side, Alignment, PatternFill
 from openpyxl.formatting.rule import ColorScaleRule
+from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QDesktopWidget, QGridLayout)
 import string
 import pandas as pd
 import calendar
@@ -9,14 +9,15 @@ import datetime
 import numpy as np
 import shelve
 import sys
-from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QDesktopWidget, QGridLayout)
+import os
+import re
 
 files = ['Tender',
-         'Employee Discount',
-         'Tax Free Sales',
-         'Purchased GCs',
-         'Redeemed GCs',
-         'Credit Memos',
+         'Employee Sale',
+         'Tax Free Sale',
+         'Purchased GC',
+         'Redeemed GC',
+         'CM Report',
          'FOLDER CONTAINING ALL FILES...']
 
 coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
@@ -63,22 +64,31 @@ class MainWindow(QWidget):
         find_file, _ = QFileDialog.getOpenFileName(self, 'DSR File 1', '',
                                                    'Excel Files (*.xlsx *xls)',
                                                    options=options)
+        FileLocations['File Name'].append(self.sender().text())
+        FileLocations['Location'].append(find_file)
 
     def get_directory(self):
         dialog = QFileDialog()
         folder_path = dialog.getExistingDirectory(self, None, 'Select Folder with ALL 6 Files')
         FileLocations['File Name'].append('Directory')
         FileLocations['Location'].append(folder_path)
+        dialog.setEnabled(False)
 
 
-app = QApplication(sys.argv)
+def file_selector():
+    if __name__ == '__main__':
+        app = QApplication(sys.argv)
+        window = MainWindow()
+        window.show()
+        app.exec_()
 
-window = MainWindow()
-window.show()
 
-app.exec_()
-breakpoint()
-sys.exit()
+file_selector()
+
+
+FileLocations = pd.DataFrame(FileLocations)
+FileLocations = FileLocations.set_index('File Name')
+FileLocations = FileLocations.drop_duplicates()
 
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
@@ -122,30 +132,99 @@ except KeyError:    # This means that there is no filename on the shelf
     work_sheet.title = calendar.month_name[Month] + ' 2020'  # TODO: make filename dependent
     my_shelf['SheetName'] = work_sheet.title
 
-TenderReport = 'Reports/Tender 1.16-1.22.xlsx'
+if FileLocations['Location']['Directory']:
+    for index, folder_files in enumerate(os.listdir(FileLocations['Location']['Directory'])):
+        for report in range(len(files)):
+            if re.search(files[report], folder_files, re.IGNORECASE):
+                if files[report] == 'Tender':
+                    TenderReport = FileLocations['Location']['Directory'] + '/' + folder_files
+                    while True:
+                        try:
+                            TenderedHigherNames = pd.read_excel(TenderReport, skiprows=4).columns
+                            Tendered = pd.read_excel(TenderReport, skiprows=7)
+                            Tendered = Tendered.set_index(['Unnamed: 0'])
+                            Tendered.index = pd.Series(Tendered.index).fillna(method='ffill')
+                            break
+                        except NameError:
+                            print("The Tender Report must be named 'Tender' only")
+                            TenderReport = file_selector()  # TODO: Get file specifically
+
+                if files[report] == 'Employee Sale':
+                    EmpSales = FileLocations['Location']['Directory'] + '/' + folder_files
+
+                    while True:
+                        try:
+                            EmpDisc = pd.read_excel(EmpSales)
+                            EmpDisc = EmpDisc.set_index(['Store Name'])
+                            break
+                        except NameError:
+                            print("The Employee Sales Report must be named 'Employee Sale' only")
+                            EmpSales = file_selector() #TODO: Get EmpSales Specifically
+
+                if files[report] == 'Tax Free Sale':
+                    TaxFreeSales = FileLocations['Location']['Directory'] + '/' + folder_files
+
+                    while True:
+                        try:
+                            Tax_Exempt = pd.read_excel(TaxFreeSales)
+                            Tax_Exempt = Tax_Exempt.set_index(['Store Name'])
+                            break
+                        except NameError:
+                            print("The Tax Exemption Report must be named 'Tax Free Sale'")
+                            TaxFreeSales = file_selector() #TODO: Get tax exempted report specifically
+                            continue
+
+                if files[report] == 'Purchased GC':
+                    GC_Sales = FileLocations['Location']['Directory'] + '/' + folder_files
+
+                    while True:
+                        try:
+                            PurchasedGC = pd.read_excel(GC_Sales)
+                            PurchasedGC = PurchasedGC.set_index('Store Name')
+                            break
+                        except NameError:
+                            print("The Purchased GCs should be named 'Purchased GC' only")
+                            GC_Sales = file_selector() #TODO: Get GCSales Location specifically
+                            continue
+
+                if files[report] == 'Redeemed GC':
+                    GC_Used = FileLocations['Location']['Directory'] + '/' + folder_files
+
+                    while True:
+                        try:
+                            RedeemedGC = pd.read_excel(GC_Used)
+                            RedeemedGC = RedeemedGC.set_index('Store Name')
+                            break
+                        except NameError:
+                            print("The Redeemed GCs should be named 'Redeemed GC' only")
+                            GC_Used = file_selector() #TODO: Get GC_Used
+                            continue
+
+                if files[report] == 'CM Report':
+                    CM_Sales_Issuance = FileLocations['Location']['Directory'] + '/' + folder_files
+
+                    while True:
+                        try:
+                            CreditMemo = pd.read_excel(CM_Sales_Issuance)
+                            break
+                        except NameError:
+                            print("The Credit Memos should be named 'CM Report' only")
+                            CM_Sales_Issuance = file_selector() #TODO: Get CM Sales specifically
+                            continue
+
+TaxRate = 'Tax Rate.xlsx'
+"""TenderReport = 'Reports/Tender 1.16-1.22.xlsx'
 TaxRate = 'Tax Rate.xlsx'
 EmpSales = 'Reports/EMP Disc 1.16-1.22.xlsx'
 TaxFreeSales = 'Reports/No Tax 1.16-1.22.xlsx'
 CM_Sales_Issuance = 'Reports/CM report 1.16-1.22.xlsx'
 GC_Sales = 'Reports/Purchased GC 1.16-1.22.xlsx'
-GC_Used = 'Reports/Redeemed GC 1.16-1.22.xlsx'
+GC_Used = 'Reports/Redeemed GC 1.16-1.22.xlsx'"""
 
-
-TenderedHigherNames = pd.read_excel(TenderReport, skiprows=4).columns
-Tendered = pd.read_excel(TenderReport, skiprows=7)
-Tendered = Tendered.set_index(['Unnamed: 0'])
-Tendered.index = pd.Series(Tendered.index).fillna(method='ffill')
-
-EmpDisc = pd.read_excel(EmpSales)
-EmpDisc = EmpDisc.set_index(['Store Name'])
 
 Tax = pd.read_excel(TaxRate)
 Tax = Tax.set_index(['Headquarters'])
 
-Tax_Exempt = pd.read_excel(TaxFreeSales)
-Tax_Exempt = Tax_Exempt.set_index(['Store Name'])
-
-CreditMemo = pd.read_excel(CM_Sales_Issuance)
 CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
 
 try:
@@ -157,16 +236,9 @@ except ValueError:
         try:
             invoices.append(CreditMemo['Invoice #'][CMs].split()[0])
         except AttributeError:
-            invoices.append(CreditMemo['Invoice #'][x])
+            invoices.append(CreditMemo['Invoice #'][CMs])
     CreditMemo['Invoice #'] = invoices
     CreditMemo = CreditMemo.set_index('Invoice #')
-
-PurchasedGC = pd.read_excel(GC_Sales)
-PurchasedGC = PurchasedGC.set_index('Store Name')
-
-RedeemedGC = pd.read_excel(GC_Used)
-RedeemedGC = RedeemedGC.set_index('Store Name')
-
 
 Locations = ['Alexandria', 'Asheville', 'Austin', 'Baton Rouge', 'Birmingham', 'Boston', 'Buckhead', 'Charleston',
              'Charlotte', 'Chattanooga', 'Chicago', 'Cincinnati', 'Columbia', 'Dallas', 'Detroit', 'Fort Worth',
