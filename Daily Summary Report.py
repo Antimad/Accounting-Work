@@ -302,8 +302,13 @@ TitleBorder = Border(top=Side(border_style='thin', color='000000'),
                      bottom=Side(border_style='thin', color='000000'))
 
 
-def title(text, working_cell, font, alignment=None, border=None, merge='A1', number_format='General',
-          column_width=False):
+def title(text, working_cell, font, new=False, alignment=None, border=None, merge='A1', number_format='General',
+          column_width=False, place=0):
+    if new:
+        try:
+            text = text.iat[place]
+        except AttributeError:
+            text = text
     work_sheet.merge_cells(merge)
     work_sheet[working_cell].font = font
     work_sheet[working_cell].alignment = alignment
@@ -313,6 +318,15 @@ def title(text, working_cell, font, alignment=None, border=None, merge='A1', num
     if column_width:
         COL = ''.join([i for i in working_cell if not i.isdigit()])
         work_sheet.column_dimensions[COL].width = len(work_sheet[working_cell].value) + 2
+
+
+def data_frame_try_catch(df, group, location, place):
+    try:
+        search = df[group][location].iat[place]
+    except AttributeError:
+        search = df[group][location]
+
+    return search
 
 
 def labels():
@@ -491,6 +505,9 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
             except KeyError:
                 pass
             except TypeError:
+                """
+                Sometimes there is only one Credit Memo, so we can't use .iat function to count through the CMs
+                """
                 TaxFree = 0
                 if Date == pd.to_datetime(Tax_Exempt['Date'][Bank]):
                     title(text=(Tax_Exempt['Item Subtotal'][Bank]), working_cell=('Y%s' % Row), font=Normal,
@@ -527,18 +544,21 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                 pass
 
             for data in range(len(Tendered['Date'][Bank])):
-
-                if Date == pd.to_datetime(Tendered['Date'][Bank].iat[data]):
+                try:
+                    working_date = pd.to_datetime(Tendered['Date'][Bank].iat[data])
+                except AttributeError:
+                    working_date = pd.to_datetime(Tendered['Date'][Bank])
+                if Date == working_date:
                     # Cash Total
-                    title(text=Tendered['Cash'][Bank].iat[data], working_cell=('D' + Row), font=Normal,
-                          number_format=Currency)
+                    title(text=Tendered['Cash'][Bank], working_cell=('D' + Row), font=Normal,
+                          number_format=Currency, new=True, place=data)
                     # Check Total
-                    title(text=Tendered['Check'][Bank].iat[data], working_cell='H' + Row, font=Normal,
-                          number_format=Currency)
-                    title(text=Tendered['VisaMCD'][Bank].iat[data], working_cell='L' + Row, font=Normal,
-                          number_format=Currency)
-                    title(text=Tendered['AMEX'][Bank].iat[data], working_cell='P' + Row, font=Normal,
-                          number_format=Currency)
+                    title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
+                          number_format=Currency, new=True, place=data)
+                    title(text=Tendered['VisaMCD'][Bank], working_cell='L' + Row, font=Normal,
+                          number_format=Currency, new=True, place=data)
+                    title(text=Tendered['AMEX'][Bank], working_cell='P' + Row, font=Normal,
+                          number_format=Currency, new=True, place=data)
 
                     GCsPurchased = 0
                     GCsRedeemed = 0
@@ -546,15 +566,19 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                     PurGo = False
 
                     # ****SC is purposefully being removed from the GTotal & GTotal Taxed****
-                    GrandTotal = Tendered['GTotal'][Bank].iat[data]
-                    if not np.isnan(Tendered['GCTotal'][Bank].iat[data]):
-                        if Tendered['GCTotal'][Bank].iat[data] < 0:
-                            GrandTotal -= Tendered['GCTotal'][Bank].iat[data]
-                            """title(text=(GrandTotal - Tendered['GCTotal'][Bank].iat[data]
-                                        - Tendered['SCTotal'][Bank].iat[data]),
-                                  cell='T' + Row, font=Normal, number_format=Currency)"""
-                    if np.isnan(Tendered['SCTotal'][Bank].iat[data]):
-                        title(text=round(Tendered['GTotal Taxed'][Bank].iat[data], 2), working_cell='V' + Row,
+
+                    GrandTotal = data_frame_try_catch(df=Tendered, group='GTotal', location=Bank, place=data)
+
+                    GCTotal = data_frame_try_catch(df=Tendered, group='GCTotal', location=Bank, place=data)
+
+                    if not np.isnan(GCTotal):
+                        if GCTotal < 0:
+                            GrandTotal -= GCTotal
+
+                    SCTotal = data_frame_try_catch(df=Tendered, group='SCTotal', location=Bank, place=data)
+
+                    if np.isnan(SCTotal):
+                        title(text=round(GrandTotal, 2), working_cell='V' + Row,
                               font=Normal, number_format=Currency)
                         if Date.day <= 15:
                             # PAY PERIOD
@@ -563,8 +587,14 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                 try:
                                     EmpDayTotal = 0
                                     for discount in range(len(EmpDisc['Date'][Bank])):
-                                        if Date.day == pd.to_datetime(EmpDisc['Date'][Bank].iat[discount]).day:
-                                            EmpDayTotal += EmpDisc['Item Subtotal'][Bank].iat[discount]
+
+                                        EmpDiscDate = data_frame_try_catch(df=EmpDisc, group='Date',
+                                                                           location=Bank, place=discount)
+
+                                        if Date.day == pd.to_datetime(EmpDiscDate).day:
+
+                                            EmpDayTotal += data_frame_try_catch(df=EmpDisc, group='Item Subtotal',
+                                                                                location=Bank, place=discount)
                                             title(text=EmpDayTotal, working_cell='AE' + Row, font=Normal,
                                                   number_format=Currency)
                                 except TypeError:
@@ -595,24 +625,32 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                 pass
                     else:
                         # PAY PERIODS
-                        SC_COM = round(Tendered['SCTotal'][Bank].iat[data] / (CurrentTax + 1), 2)
-                        SCTax = round((Tendered['SCTotal'][Bank].iat[data] - SC_COM), 2)
+                        elseSC = data_frame_try_catch(df=Tendered, group='SCTotal', location=Bank, place=data)
+                        SC_COM = round(elseSC / (CurrentTax + 1), 2)
+                        SCTax = round((elseSC - SC_COM), 2)
                         # Tax Calculations
-                        if np.isnan(Tendered['SCTotal Taxed'][Bank].iat[data]):
-                            if Tendered['SCTotal'][Bank].iat[data] < 0:
-                                title(text=(round(Tendered['GTotal Taxed'][Bank].iat[data], 2)
+                        elseSCTaxed = data_frame_try_catch(df=Tendered,
+                                                           group='SCTotal Taxed', location=Bank, place=data)
+                        if np.isnan(elseSCTaxed):
+                            elseGCTaxed = data_frame_try_catch(df=Tendered,
+                                                                   group='GTotal Taxed', location=Bank, place=data)
+                            if elseSC < 0:
+
+                                title(text=(round(elseGCTaxed, 2)
                                             - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
-                            else:
-                                title(text=(round(Tendered['GTotal Taxed'][Bank].iat[data], 2)
+                            else:  # Pretty sure these do the same thing...
+                                title(text=(round(elseGCTaxed, 2)
                                             - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
 
                         else:
-                            if Tendered['SCTotal'][Bank].iat[data] < 0:
-                                title(text=(round(Tendered['GTotal Taxed'][Bank].iat[data], 2)
+                            elseGTTaxed = data_frame_try_catch(df=Tendered, group='GTotal Taxed',
+                                                               location=Bank, place=data)
+                            if elseSC < 0:
+                                title(text=(round(elseGTTaxed, 2)
                                             - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
                             else:
                                 # SCTax += abs(Tendered['SCTotal Taxed'][Bank].iat[data])
-                                title(text=(round(Tendered['GTotal Taxed'][Bank].iat[data], 2)
+                                title(text=(round(elseGTTaxed, 2)
                                             - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
 
                         if Date.day <= 15:
@@ -622,8 +660,12 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                 try:
                                     EmpDayTotal = 0
                                     for discount in range(len(EmpDisc['Date'][Bank])):
-                                        if Date.day == pd.to_datetime(EmpDisc['Date'][Bank].iat[discount]).day:
-                                            EmpDayTotal += EmpDisc['Item Subtotal'][Bank].iat[discount]
+                                        fifEmpDate = data_frame_try_catch(df=EmpDisc, group='Date',
+                                                                          location=Bank, place=discount)
+                                        if Date.day == pd.to_datetime(fifEmpDate).day:
+
+                                            EmpDayTotal += data_frame_try_catch(df=EmpDisc, group='Item Subtotal',
+                                                                               location=Bank, place=discount)
                                             title(text=EmpDayTotal, working_cell='AE' + Row, font=Normal,
                                                   number_format=Currency)
                                 except TypeError:
