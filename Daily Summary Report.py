@@ -221,6 +221,7 @@ CM_Sales_Issuance = 'Reports/CM report 1.16-1.22.xlsx'
 GC_Sales = 'Reports/Purchased GC 1.16-1.22.xlsx'
 GC_Used = 'Reports/Redeemed GC 1.16-1.22.xlsx'"""
 
+# Tax_Exempt = pd.DataFrame({'A': []})
 
 Tax = pd.read_excel(TaxRate)
 Tax = Tax.set_index(['Headquarters'])
@@ -578,7 +579,8 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                     SCTotal = data_frame_try_catch(df=Tendered, group='SCTotal', location=Bank, place=data)
 
                     if np.isnan(SCTotal):
-                        title(text=round(GrandTotal, 2), working_cell='V' + Row,
+                        GTTaxed = data_frame_try_catch(df=Tendered, group='GTotal Taxed', location=Bank, place=data)
+                        title(text=round(GTTaxed, 2), working_cell='V' + Row,
                               font=Normal, number_format=Currency)
                         if Date.day <= 15:
                             # PAY PERIOD
