@@ -96,8 +96,13 @@ my_shelf = shelve.open(shelf_files)
 # TODO: Make filename dependent
 Year = datetime.datetime.now().year
 Month = datetime.datetime.now().month
+
+Year = 2020
+Month = 2
+
 try:
     filename = my_shelf['current_file']
+    filename = 'February Report 2020.xlsx'
     wb = load_workbook(filename)
     print('Using the existing file')
     work_sheet = wb.active
@@ -287,7 +292,7 @@ Locations_Key = {
     'Houston': 'TX1 (HOUSTON)',
     'Austin': 'TX2 (AUSTIN)',
     'San Antonio': 'TX3 (SAN ANTONIO)',
-    'Fort Worth': 'TX4 (FT WORTH)',  # Closes near end of January
+    # 'Fort Worth': 'TX4 (FT WORTH)',  # Closes near end of January
     'Alexandria': 'VA (ALEXANDRIA)'
 }
 
@@ -493,28 +498,6 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
         GCsRedeemed = 0
         if Bank in Tendered.index:
             try:
-                UnTaxed = Memo = 0
-                for TaxFree in range(len(Tax_Exempt['Date'][Bank])):
-                    if Date == pd.to_datetime(Tax_Exempt['Date'][Bank].iat[TaxFree]):
-                        UnTaxed += Tax_Exempt['Item Subtotal'][Bank].iat[TaxFree]
-                        try:
-                            Memo += CreditMemo['AMT'][str(Tax_Exempt['Invoice #'][Bank].iat[TaxFree])]
-                        except (KeyError, IndexError):
-                            pass
-                title(text=UnTaxed - Memo, working_cell=('Y%s' % Row), font=Normal, number_format=Currency)
-                UnTaxed = Memo = 0
-            except KeyError:
-                pass
-            except TypeError:
-                """
-                Sometimes there is only one Credit Memo, so we can't use .iat function to count through the CMs
-                """
-                TaxFree = 0
-                if Date == pd.to_datetime(Tax_Exempt['Date'][Bank]):
-                    title(text=(Tax_Exempt['Item Subtotal'][Bank]), working_cell=('Y%s' % Row), font=Normal,
-                          number_format=Currency)
-
-            try:
                 len(PurchasedGC['Date'][Bank])
                 PurGo = True
                 for GCs in enumerate(pd.to_datetime(PurchasedGC['Date'][Bank])):
@@ -550,6 +533,28 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                 except AttributeError:
                     working_date = pd.to_datetime(Tendered['Date'][Bank])
                 if Date == working_date:
+                    try:
+                        UnTaxed = Memo = 0
+                        for TaxFree in range(len(Tax_Exempt['Date'][Bank])):
+                            if Date == pd.to_datetime(Tax_Exempt['Date'][Bank].iat[TaxFree]):
+                                UnTaxed += Tax_Exempt['Item Subtotal'][Bank].iat[TaxFree]
+                                try:
+                                    Memo += CreditMemo['AMT'][str(Tax_Exempt['Invoice #'][Bank].iat[TaxFree])]
+                                except (KeyError, IndexError):
+                                    pass
+                        title(text=UnTaxed - Memo, working_cell=('Y%s' % Row), font=Normal, number_format=Currency)
+                        UnTaxed = Memo = 0
+                    except KeyError:
+                        pass
+                    except TypeError:
+                        """
+                        Sometimes there is only one Credit Memo, so we can't use .iat function to count through the CMs
+                        """
+                        TaxFree = 0
+                        if Date == pd.to_datetime(Tax_Exempt['Date'][Bank]):
+                            title(text=(Tax_Exempt['Item Subtotal'][Bank]), working_cell=('Y%s' % Row), font=Normal,
+                                  number_format=Currency)
+
                     # Cash Total
                     title(text=Tendered['Cash'][Bank], working_cell=('D' + Row), font=Normal,
                           number_format=Currency, new=True, place=data)
