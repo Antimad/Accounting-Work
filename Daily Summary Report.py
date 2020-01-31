@@ -19,7 +19,7 @@ files = ['Tender',
          'Redeemed GC',
          'CM Report',
          'FOLDER CONTAINING ALL FILES...']
-#test
+
 coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
 FileLocations = {'File Name': [], 'Location': []}
 
@@ -83,6 +83,15 @@ def file_selector():
         app.exec_()
 
 
+def missing_tables(df):
+    try:
+        df
+        return df
+    except NameError:
+        df = pd.DataFrame({'A': []})
+        return df
+
+
 file_selector()
 
 
@@ -98,11 +107,11 @@ Year = datetime.datetime.now().year
 Month = datetime.datetime.now().month
 
 Year = 2020
-Month = 2
+Month = 1
 
 try:
     filename = my_shelf['current_file']
-    filename = 'February Report 2020.xlsx'
+    filename = 'January Report 2020.xlsx'
     wb = load_workbook(filename)
     print('Using the existing file')
     work_sheet = wb.active
@@ -218,15 +227,7 @@ if FileLocations['Location']['Directory']:
                             continue
 
 TaxRate = 'Tax Rate.xlsx'
-"""TenderReport = 'Reports/Tender 1.16-1.22.xlsx'
-TaxRate = 'Tax Rate.xlsx'
-EmpSales = 'Reports/EMP Disc 1.16-1.22.xlsx'
-TaxFreeSales = 'Reports/No Tax 1.16-1.22.xlsx'
-CM_Sales_Issuance = 'Reports/CM report 1.16-1.22.xlsx'
-GC_Sales = 'Reports/Purchased GC 1.16-1.22.xlsx'
-GC_Used = 'Reports/Redeemed GC 1.16-1.22.xlsx'"""
-
-# Tax_Exempt = pd.DataFrame({'A': []})
+PurchasedGC = pd.DataFrame({'A' : []})
 
 Tax = pd.read_excel(TaxRate)
 Tax = Tax.set_index(['Headquarters'])
@@ -292,7 +293,7 @@ Locations_Key = {
     'Houston': 'TX1 (HOUSTON)',
     'Austin': 'TX2 (AUSTIN)',
     'San Antonio': 'TX3 (SAN ANTONIO)',
-    # 'Fort Worth': 'TX4 (FT WORTH)',  # Closes near end of January
+    'Fort Worth': 'TX4 (FT WORTH)',  # Closes near end of January
     'Alexandria': 'VA (ALEXANDRIA)'
 }
 
@@ -315,6 +316,7 @@ def title(text, working_cell, font, new=False, alignment=None, border=None, merg
             text = text.iat[place]
         except AttributeError:
             text = text
+
     work_sheet.merge_cells(merge)
     work_sheet[working_cell].font = font
     work_sheet[working_cell].alignment = alignment
@@ -445,6 +447,18 @@ if 'PPL' in TenderedHigherNames:
         'AMT.5': 'GCTotal', 'INV_TAXABLE_TOTAL.5': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'GCTotal Taxed',
         'AMT.7': 'SCTotal', 'INV_TAXABLE_TOTAL.7': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'SCTotal Taxed',
         'AMT.8': 'GTotal', 'INV_TAXABLE_TOTAL.8': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.8': 'GTotal Taxed'})
+elif 'Check' not in TenderedHigherNames:
+    Tendered = Tendered.rename(columns={
+        'Unnamed: 7': 'Date',
+        'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
+        #'AMT.1': 'Check', 'INV_TAXABLE_TOTAL.1': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Check Taxed',
+        'AMT.1': 'AMEX', 'INV_TAXABLE_TOTAL.1': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.1': 'AMEX Taxed',
+        'AMT.2': 'VisaMCD', 'INV_TAXABLE_TOTAL.2': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.2': 'VisaMCD Taxed',
+        'AMT.3': 'CCTotal', 'INV_TAXABLE_TOTAL.3': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.3': 'CCTotal Taxed',
+        'AMT.4': 'GCTotal', 'INV_TAXABLE_TOTAL.4': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'GCTotal Taxed',
+        'AMT.5': 'SCTotal', 'INV_TAXABLE_TOTAL.5': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'SCTotal Taxed',
+        'AMT.6': 'GTotal', 'INV_TAXABLE_TOTAL.6': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'GTotal Taxed'})
+
 else:
     Tendered = Tendered.rename(columns={
         'Unnamed: 7': 'Date',
@@ -559,8 +573,8 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                     title(text=Tendered['Cash'][Bank], working_cell=('D' + Row), font=Normal,
                           number_format=Currency, new=True, place=data)
                     # Check Total
-                    title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
-                          number_format=Currency, new=True, place=data)
+                    #title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
+                     #     number_format=Currency, new=True, place=data)
                     title(text=Tendered['VisaMCD'][Bank], working_cell='L' + Row, font=Normal,
                           number_format=Currency, new=True, place=data)
                     title(text=Tendered['AMEX'][Bank], working_cell='P' + Row, font=Normal,
