@@ -94,7 +94,6 @@ def missing_tables(df):
 
 file_selector()
 
-
 FileLocations = pd.DataFrame(FileLocations)
 FileLocations = FileLocations.set_index('File Name')
 FileLocations = FileLocations.drop_duplicates()
@@ -115,7 +114,7 @@ try:
     wb = load_workbook(filename)
     print('Using the existing file')
     work_sheet = wb.active
-except FileNotFoundError:   # This error is because though a filename is on the shelf, but it isn't in the folder
+except FileNotFoundError:  # This error is because though a filename is on the shelf, but it isn't in the folder
     # TODO: Ask for a new filename
     filename = my_shelf['current_file']
     print('%s was the last one used, but can\'t be found, please end this program and '
@@ -132,7 +131,7 @@ except FileNotFoundError:   # This error is because though a filename is on the 
     work_sheet = wb.active
     work_sheet.title = calendar.month_name[Month] + ' 2020'  # TODO: make filename dependent
     my_shelf['SheetName'] = work_sheet.title
-except KeyError:    # This means that there is no filename on the shelf
+except KeyError:  # This means that there is no filename on the shelf
     # TODO: Ask for a new filename
     filename = input('What is the filename you would like to use?') + '.xlsx'
     my_shelf['current_file'] = filename
@@ -173,7 +172,7 @@ if FileLocations['Location']['Directory']:
                             break
                         except NameError:
                             print("The Employee Sales Report must be named 'Employee Sale' only")
-                            EmpSales = file_selector() #TODO: Get EmpSales Specifically
+                            EmpSales = file_selector()  # TODO: Get EmpSales Specifically
 
                 if files[report] == 'Tax Free Sale':
                     TaxFreeSales = FileLocations['Location']['Directory'] + '/' + folder_files
@@ -185,7 +184,7 @@ if FileLocations['Location']['Directory']:
                             break
                         except NameError:
                             print("The Tax Exemption Report must be named 'Tax Free Sale'")
-                            TaxFreeSales = file_selector() #TODO: Get tax exempted report specifically
+                            TaxFreeSales = file_selector()  # TODO: Get tax exempted report specifically
                             continue
 
                 if files[report] == 'Purchased GC':
@@ -198,7 +197,7 @@ if FileLocations['Location']['Directory']:
                             break
                         except NameError:
                             print("The Purchased GCs should be named 'Purchased GC' only")
-                            GC_Sales = file_selector() #TODO: Get GCSales Location specifically
+                            GC_Sales = file_selector()  # TODO: Get GCSales Location specifically
                             continue
 
                 if files[report] == 'Redeemed GC':
@@ -211,7 +210,7 @@ if FileLocations['Location']['Directory']:
                             break
                         except NameError:
                             print("The Redeemed GCs should be named 'Redeemed GC' only")
-                            GC_Used = file_selector() #TODO: Get GC_Used
+                            GC_Used = file_selector()  # TODO: Get GC_Used
                             continue
 
                 if files[report] == 'CM Report':
@@ -223,11 +222,11 @@ if FileLocations['Location']['Directory']:
                             break
                         except NameError:
                             print("The Credit Memos should be named 'CM Report' only")
-                            CM_Sales_Issuance = file_selector() #TODO: Get CM Sales specifically
+                            CM_Sales_Issuance = file_selector()  # TODO: Get CM Sales specifically
                             continue
 
 TaxRate = 'Tax Rate.xlsx'
-PurchasedGC = pd.DataFrame({'A' : []})
+PurchasedGC = pd.DataFrame({'A': []})
 
 Tax = pd.read_excel(TaxRate)
 Tax = Tax.set_index(['Headquarters'])
@@ -451,13 +450,29 @@ elif 'Check' not in TenderedHigherNames:
     Tendered = Tendered.rename(columns={
         'Unnamed: 7': 'Date',
         'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
-        #'AMT.1': 'Check', 'INV_TAXABLE_TOTAL.1': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Check Taxed',
+        # 'AMT.1': 'Check', 'INV_TAXABLE_TOTAL.1': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Check Taxed',
         'AMT.1': 'AMEX', 'INV_TAXABLE_TOTAL.1': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.1': 'AMEX Taxed',
         'AMT.2': 'VisaMCD', 'INV_TAXABLE_TOTAL.2': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.2': 'VisaMCD Taxed',
         'AMT.3': 'CCTotal', 'INV_TAXABLE_TOTAL.3': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.3': 'CCTotal Taxed',
         'AMT.4': 'GCTotal', 'INV_TAXABLE_TOTAL.4': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'GCTotal Taxed',
         'AMT.5': 'SCTotal', 'INV_TAXABLE_TOTAL.5': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'SCTotal Taxed',
         'AMT.6': 'GTotal', 'INV_TAXABLE_TOTAL.6': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'GTotal Taxed'})
+
+elif 'Cashit Card' in TenderedHigherNames:
+    Tendered = Tendered.rename(columns={
+        'Unnamed: 7': 'Date',
+        'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
+        'AMT.1': 'Cashit', 'INV_TAXABLE_TOTAL.1': 'Cashit Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Cashit Taxed',
+        'AMT.2': 'Check', 'INV_TAXABLE_TOTAL.2': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.2': 'Check Taxed',
+        'AMT.3': 'AMEX', 'INV_TAXABLE_TOTAL.3': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.3': 'AMEX Taxed',
+        'AMT.4': 'VisaMCD', 'INV_TAXABLE_TOTAL.4': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.4': 'VisaMCD Taxed',
+        'AMT.5': 'CCTotal', 'INV_TAXABLE_TOTAL.5': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'CCTotal Taxed',
+        'AMT.6': 'GCTotal', 'INV_TAXABLE_TOTAL.6': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'GCTotal Taxed',
+        'AMT.7': 'SCTotal', 'INV_TAXABLE_TOTAL.7': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'SCTotal Taxed',
+        'AMT.8': 'GTotal', 'INV_TAXABLE_TOTAL.8': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.8': 'GTotal Taxed'})
+
+    Tendered['VisaMCD'] = Tendered['VisaMCD'].add(Tendered['Cashit'], fill_value=0)
+
 
 else:
     Tendered = Tendered.rename(columns={
@@ -573,8 +588,8 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                     title(text=Tendered['Cash'][Bank], working_cell=('D' + Row), font=Normal,
                           number_format=Currency, new=True, place=data)
                     # Check Total
-                    #title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
-                     #     number_format=Currency, new=True, place=data)
+                    # title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
+                    #     number_format=Currency, new=True, place=data)
                     title(text=Tendered['VisaMCD'][Bank], working_cell='L' + Row, font=Normal,
                           number_format=Currency, new=True, place=data)
                     title(text=Tendered['AMEX'][Bank], working_cell='P' + Row, font=Normal,
@@ -613,7 +628,6 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                                                            location=Bank, place=discount)
 
                                         if Date.day == pd.to_datetime(EmpDiscDate).day:
-
                                             EmpDayTotal += data_frame_try_catch(df=EmpDisc, group='Item Subtotal',
                                                                                 location=Bank, place=discount)
                                             title(text=EmpDayTotal, working_cell='AE' + Row, font=Normal,
@@ -654,7 +668,7 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                                            group='SCTotal Taxed', location=Bank, place=data)
                         if np.isnan(elseSCTaxed):
                             elseGCTaxed = data_frame_try_catch(df=Tendered,
-                                                                   group='GTotal Taxed', location=Bank, place=data)
+                                                               group='GTotal Taxed', location=Bank, place=data)
                             if elseSC < 0:
 
                                 title(text=(round(elseGCTaxed, 2)
@@ -684,9 +698,8 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                         fifEmpDate = data_frame_try_catch(df=EmpDisc, group='Date',
                                                                           location=Bank, place=discount)
                                         if Date.day == pd.to_datetime(fifEmpDate).day:
-
                                             EmpDayTotal += data_frame_try_catch(df=EmpDisc, group='Item Subtotal',
-                                                                               location=Bank, place=discount)
+                                                                                location=Bank, place=discount)
                                             title(text=EmpDayTotal, working_cell='AE' + Row, font=Normal,
                                                   number_format=Currency)
                                 except TypeError:
