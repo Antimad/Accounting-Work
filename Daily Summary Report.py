@@ -1,7 +1,9 @@
 from openpyxl import load_workbook, Workbook, worksheet
 from openpyxl.styles import Font, Border, Side, Alignment, PatternFill
 from openpyxl.formatting.rule import ColorScaleRule
-from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QDesktopWidget, QGridLayout)
+from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QDesktopWidget, QGridLayout, QLabel,
+                             QLineEdit)
+from PyQt5 import QtCore
 import string
 import pandas as pd
 import calendar
@@ -25,6 +27,8 @@ FileLocations = {'File Name': [], 'Location': []}
 
 
 class MainWindow(QWidget):
+    switch_window = QtCore.pyqtSignal(str)
+
     def __init__(self):
         super(MainWindow, self).__init__()
         self.title = 'DSR File Selector'
@@ -33,6 +37,8 @@ class MainWindow(QWidget):
         self.width = 320
         self.height = 200
         self.init_ui()
+        self.line_edit = QLineEdit()
+
 
     def init_ui(self):
         self.setWindowTitle(self.title)
@@ -46,6 +52,9 @@ class MainWindow(QWidget):
 
         grid = QGridLayout()
         self.setLayout(grid)
+        new_window = QPushButton('New Window')
+        grid.addWidget(new_window, *(0, 6))
+        new_window.clicked.connect(self.switch)
         for coordinate, file in zip(coordinates, files):
             if file == '':
                 continue
@@ -58,6 +67,10 @@ class MainWindow(QWidget):
                 fileSearchButton = QPushButton(file)
                 grid.addWidget(fileSearchButton, *coordinate)
                 fileSearchButton.clicked.connect(self.search_file)
+
+    def switch(self):
+        self.switch_window.emit(self.line_edit.text())
+
 
     def search_file(self):
         options = QFileDialog.Options()
@@ -73,13 +86,51 @@ class MainWindow(QWidget):
         FileLocations['File Name'].append('Directory')
         FileLocations['Location'].append(folder_path)
         dialog.setEnabled(False)
+        #self.close()
+    """
+    def count_files(self):
+        for file_index, six_files in enumerate(os.listdir(FileLocations['Location']['Directory'])):
+    """
+
+
+class CheckWindow(QWidget):
+    def __init__(self):
+        QWidget.__init__(self)
+        self.setWindowTitle('Files Found')
+        layout = QGridLayout()
+
+        self.label = QLabel('testing')
+        layout.addWidget(self.label)
+
+        self.button = QPushButton('Close')
+        self.button.clicked.connect(self.close)
+
+        layout.addWidget(self.button)
+
+        self.setLayout(layout)
+
+
+class Controller:
+    def __init__(self):
+        pass
+
+    def show_main(self):
+        self.window = MainWindow()
+        self.window.switch_window.connect(self.show_window_two)
+        self.window.close()
+        self.window.show()
+
+    def show_window_two(self):
+        self.checkwindow = CheckWindow()
+        self.window.close()
+        self.checkwindow.show()
 
 
 def file_selector():
     if __name__ == '__main__':
         app = QApplication(sys.argv)
-        window = MainWindow()
-        window.show()
+        window = Controller()
+        window.show_main()
         app.exec_()
 
 
@@ -97,6 +148,8 @@ file_selector()
 FileLocations = pd.DataFrame(FileLocations)
 FileLocations = FileLocations.set_index('File Name')
 FileLocations = FileLocations.drop_duplicates()
+
+sys.exit()
 
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
