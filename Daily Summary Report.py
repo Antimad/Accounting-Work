@@ -39,7 +39,6 @@ class MainWindow(QWidget):
         self.init_ui()
         self.line_edit = QLineEdit()
 
-
     def init_ui(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
@@ -52,9 +51,6 @@ class MainWindow(QWidget):
 
         grid = QGridLayout()
         self.setLayout(grid)
-        new_window = QPushButton('New Window')
-        grid.addWidget(new_window, *(0, 6))
-        new_window.clicked.connect(self.switch)
         for coordinate, file in zip(coordinates, files):
             if file == '':
                 continue
@@ -62,11 +58,14 @@ class MainWindow(QWidget):
                 fileDirectoryButton = QPushButton(file)
                 grid.addWidget(fileDirectoryButton, *coordinate)
                 fileDirectoryButton.clicked.connect(self.get_directory)
+                label = QLabel('tender')
+                grid.addWidget(label, *(2, 6))
 
             else:
                 fileSearchButton = QPushButton(file)
                 grid.addWidget(fileSearchButton, *coordinate)
                 fileSearchButton.clicked.connect(self.search_file)
+
 
     def switch(self):
         self.switch_window.emit(self.line_edit.text())
@@ -143,13 +142,10 @@ def missing_tables(df):
         return df
 
 
-file_selector()
 
 FileLocations = pd.DataFrame(FileLocations)
 FileLocations = FileLocations.set_index('File Name')
 FileLocations = FileLocations.drop_duplicates()
-
-sys.exit()
 
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
@@ -277,6 +273,8 @@ if FileLocations['Location']['Directory']:
                             print("The Credit Memos should be named 'CM Report' only")
                             CM_Sales_Issuance = file_selector()  # TODO: Get CM Sales specifically
                             continue
+
+file_selector()
 
 TaxRate = 'Tax Rate.xlsx'
 PurchasedGC = pd.DataFrame({'A': []})
