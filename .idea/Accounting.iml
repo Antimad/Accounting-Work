@@ -10,5 +10,6 @@
     <orderEntry type="module" module-name="Brian" />
     <orderEntry type="module" module-name="Data" />
     <orderEntry type="module" module-name="Logistics" />
+    <orderEntry type="module" module-name="Purchasing" />
   </component>
 </module>

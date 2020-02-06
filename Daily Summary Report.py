@@ -15,8 +15,8 @@ import os
 import re
 
 files = ['Tender',
-         'Employee Sale',
-         'Tax Free Sale',
+         'EMP Sale',
+         'No Tax',
          'Purchased GC',
          'Redeemed GC',
          'CM Report',
@@ -61,6 +61,7 @@ class MainWindow(QWidget):
                 label = QLabel('tender')
                 grid.addWidget(label, *(2, 6))
 
+
             else:
                 fileSearchButton = QPushButton(file)
                 grid.addWidget(fileSearchButton, *coordinate)
@@ -85,7 +86,7 @@ class MainWindow(QWidget):
         FileLocations['File Name'].append('Directory')
         FileLocations['Location'].append(folder_path)
         dialog.setEnabled(False)
-        #self.close()
+        self.close()
     """
     def count_files(self):
         for file_index, six_files in enumerate(os.listdir(FileLocations['Location']['Directory'])):
@@ -128,10 +129,11 @@ class Controller:
 def file_selector():
     if __name__ == '__main__':
         app = QApplication(sys.argv)
-        window = Controller()
-        window.show_main()
+        window = MainWindow()
+        window.show()
         app.exec_()
 
+file_selector()
 
 def missing_tables(df):
     try:
@@ -155,7 +157,7 @@ Year = datetime.datetime.now().year
 Month = datetime.datetime.now().month
 
 Year = 2020
-Month = 1
+Month = 2
 
 try:
     filename = my_shelf['current_file']
@@ -211,7 +213,7 @@ if FileLocations['Location']['Directory']:
                             print("The Tender Report must be named 'Tender' only")
                             TenderReport = file_selector()  # TODO: Get file specifically
 
-                if files[report] == 'Employee Sale':
+                if files[report] == 'EMP Sale':
                     EmpSales = FileLocations['Location']['Directory'] + '/' + folder_files
 
                     while True:
@@ -223,7 +225,7 @@ if FileLocations['Location']['Directory']:
                             print("The Employee Sales Report must be named 'Employee Sale' only")
                             EmpSales = file_selector()  # TODO: Get EmpSales Specifically
 
-                if files[report] == 'Tax Free Sale':
+                if files[report] == 'No Tax':
                     TaxFreeSales = FileLocations['Location']['Directory'] + '/' + folder_files
 
                     while True:
@@ -274,10 +276,10 @@ if FileLocations['Location']['Directory']:
                             CM_Sales_Issuance = file_selector()  # TODO: Get CM Sales specifically
                             continue
 
-file_selector()
+
 
 TaxRate = 'Tax Rate.xlsx'
-PurchasedGC = pd.DataFrame({'A': []})
+#PurchasedGC = pd.DataFrame({'A': []})
 
 Tax = pd.read_excel(TaxRate)
 Tax = Tax.set_index(['Headquarters'])
@@ -343,7 +345,7 @@ Locations_Key = {
     'Houston': 'TX1 (HOUSTON)',
     'Austin': 'TX2 (AUSTIN)',
     'San Antonio': 'TX3 (SAN ANTONIO)',
-    'Fort Worth': 'TX4 (FT WORTH)',  # Closes near end of January
+    # 'Fort Worth': 'TX4 (FT WORTH)',  # Closes near end of January
     'Alexandria': 'VA (ALEXANDRIA)'
 }
 
@@ -497,7 +499,7 @@ if 'PPL' in TenderedHigherNames:
         'AMT.5': 'GCTotal', 'INV_TAXABLE_TOTAL.5': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'GCTotal Taxed',
         'AMT.7': 'SCTotal', 'INV_TAXABLE_TOTAL.7': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'SCTotal Taxed',
         'AMT.8': 'GTotal', 'INV_TAXABLE_TOTAL.8': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.8': 'GTotal Taxed'})
-elif 'Check' not in TenderedHigherNames:
+if 'Check' not in TenderedHigherNames:
     Tendered = Tendered.rename(columns={
         'Unnamed: 7': 'Date',
         'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
@@ -509,7 +511,7 @@ elif 'Check' not in TenderedHigherNames:
         'AMT.5': 'SCTotal', 'INV_TAXABLE_TOTAL.5': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'SCTotal Taxed',
         'AMT.6': 'GTotal', 'INV_TAXABLE_TOTAL.6': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'GTotal Taxed'})
 
-elif 'Cashit Card' in TenderedHigherNames:
+if 'Cashit Card' in TenderedHigherNames:
     Tendered = Tendered.rename(columns={
         'Unnamed: 7': 'Date',
         'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
@@ -639,8 +641,8 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                     title(text=Tendered['Cash'][Bank], working_cell=('D' + Row), font=Normal,
                           number_format=Currency, new=True, place=data)
                     # Check Total
-                    # title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
-                    #     number_format=Currency, new=True, place=data)
+                    title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
+                         number_format=Currency, new=True, place=data)
                     title(text=Tendered['VisaMCD'][Bank], working_cell='L' + Row, font=Normal,
                           number_format=Currency, new=True, place=data)
                     title(text=Tendered['AMEX'][Bank], working_cell='P' + Row, font=Normal,
