@@ -156,6 +156,8 @@ my_shelf = shelve.open(shelf_files)
 Year = datetime.datetime.now().year
 Month = datetime.datetime.now().month
 
+Tendered = EmpDisc = TaxFreeSales = RedeemedGC = PurchasedGC = CreditMemo = None
+
 Year = 2020
 Month = 2
 
@@ -280,6 +282,24 @@ if FileLocations['Location']['Directory']:
 
 TaxRate = 'Tax Rate.xlsx'
 #PurchasedGC = pd.DataFrame({'A': []})
+
+EmptyDF = pd.DataFrame({'A': []})
+#data_bases = [Tendered, EmpDisc, TaxFreeSales, RedeemedGC, PurchasedGC, CreditMemo]
+
+if EmpDisc is None:
+    EmpDisc = EmptyDF
+
+if TaxFreeSales is None:
+    TaxFreeSales = EmptyDF
+
+if RedeemedGC is None:
+    RedeemedGC = EmptyDF
+
+if PurchasedGC is None:
+    PurchasedGC = EmptyDF
+
+if CreditMemo is None:
+    CreditMemo = EmptyDF
 
 Tax = pd.read_excel(TaxRate)
 Tax = Tax.set_index(['Headquarters'])
