@@ -163,7 +163,7 @@ Month = 2
 
 try:
     filename = my_shelf['current_file']
-    filename = 'January Report 2020.xlsx'
+    #filename = 'January Report 2020.xlsx'
     wb = load_workbook(filename)
     print('Using the existing file')
     work_sheet = wb.active
@@ -290,7 +290,7 @@ if EmpDisc is None:
     EmpDisc = EmptyDF
 
 if TaxFreeSales is None:
-    TaxFreeSales = EmptyDF
+    Tax_Exempt = EmptyDF
 
 if RedeemedGC is None:
     RedeemedGC = EmptyDF
@@ -304,9 +304,10 @@ if CreditMemo is None:
 Tax = pd.read_excel(TaxRate)
 Tax = Tax.set_index(['Headquarters'])
 
-CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
+
 
 try:
+    CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
     CreditMemo = CreditMemo.astype({'Invoice #': 'int'})
     CreditMemo = CreditMemo.set_index('Invoice #')
 except ValueError:
@@ -318,6 +319,8 @@ except ValueError:
             invoices.append(CreditMemo['Invoice #'][CMs])
     CreditMemo['Invoice #'] = invoices
     CreditMemo = CreditMemo.set_index('Invoice #')
+except KeyError:
+    pass
 
 Locations = ['Alexandria', 'Asheville', 'Austin', 'Baton Rouge', 'Birmingham', 'Boston', 'Buckhead', 'Charleston',
              'Charlotte', 'Chattanooga', 'Chicago', 'Cincinnati', 'Columbia', 'Dallas', 'Detroit', 'Fort Worth',
@@ -403,10 +406,12 @@ def title(text, working_cell, font, new=False, alignment=None, border=None, merg
 def data_frame_try_catch(df, group, location, place):
     try:
         search = df[group][location].iat[place]
+        return search
     except AttributeError:
         search = df[group][location]
-
-    return search
+        return search
+    except KeyError:
+        return np.nan
 
 
 def labels():
@@ -519,6 +524,7 @@ if 'PPL' in TenderedHigherNames:
         'AMT.5': 'GCTotal', 'INV_TAXABLE_TOTAL.5': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'GCTotal Taxed',
         'AMT.7': 'SCTotal', 'INV_TAXABLE_TOTAL.7': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'SCTotal Taxed',
         'AMT.8': 'GTotal', 'INV_TAXABLE_TOTAL.8': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.8': 'GTotal Taxed'})
+
 if 'Check' not in TenderedHigherNames:
     Tendered = Tendered.rename(columns={
         'Unnamed: 7': 'Date',
@@ -527,24 +533,26 @@ if 'Check' not in TenderedHigherNames:
         'AMT.1': 'AMEX', 'INV_TAXABLE_TOTAL.1': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.1': 'AMEX Taxed',
         'AMT.2': 'VisaMCD', 'INV_TAXABLE_TOTAL.2': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.2': 'VisaMCD Taxed',
         'AMT.3': 'CCTotal', 'INV_TAXABLE_TOTAL.3': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.3': 'CCTotal Taxed',
-        'AMT.4': 'GCTotal', 'INV_TAXABLE_TOTAL.4': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'GCTotal Taxed',
-        'AMT.5': 'SCTotal', 'INV_TAXABLE_TOTAL.5': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'SCTotal Taxed',
-        'AMT.6': 'GTotal', 'INV_TAXABLE_TOTAL.6': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'GTotal Taxed'})
+        #'AMT.4': 'GCTotal', 'INV_TAXABLE_TOTAL.4': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'GCTotal Taxed',
+        #'AMT.5': 'SCTotal', 'INV_TAXABLE_TOTAL.5': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'SCTotal Taxed',
+        'AMT.4': 'GTotal', 'INV_TAXABLE_TOTAL.4': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'GTotal Taxed'})
 
 if 'Cashit Card' in TenderedHigherNames:
     Tendered = Tendered.rename(columns={
         'Unnamed: 7': 'Date',
         'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
-        'AMT.1': 'Cashit', 'INV_TAXABLE_TOTAL.1': 'Cashit Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Cashit Taxed',
-        'AMT.2': 'Check', 'INV_TAXABLE_TOTAL.2': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.2': 'Check Taxed',
-        'AMT.3': 'AMEX', 'INV_TAXABLE_TOTAL.3': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.3': 'AMEX Taxed',
-        'AMT.4': 'VisaMCD', 'INV_TAXABLE_TOTAL.4': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.4': 'VisaMCD Taxed',
-        'AMT.5': 'CCTotal', 'INV_TAXABLE_TOTAL.5': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'CCTotal Taxed',
-        'AMT.6': 'GCTotal', 'INV_TAXABLE_TOTAL.6': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'GCTotal Taxed',
+        'AMT.1': 'CashitAmex', 'INV_TAXABLE_TOTAL.1': 'CashitAmex Commission', 'INV_EXT_LINE_TAX_AMT.1': 'CashitAmex Taxed',
+        'AMT.2': 'CashitVMD', 'INV_TAXABLE_TOTAL.2': 'CashitVMD Commission', 'INV_EXT_LINE_TAX_AMT.2': 'CashitVMD Taxed',
+        #'AMT.3': 'Check', 'INV_TAXABLE_TOTAL.3': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.3': 'Check Taxed',
+        'AMT.4': 'AMEX', 'INV_TAXABLE_TOTAL.4': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.4': 'AMEX Taxed',
+        'AMT.5': 'VisaMCD', 'INV_TAXABLE_TOTAL.5': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.5': 'VisaMCD Taxed',
+        'AMT.6': 'CCTotal', 'INV_TAXABLE_TOTAL.6': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'CCTotal Taxed',
+        #'AMT.7': 'GCTotal', 'INV_TAXABLE_TOTAL.7': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'GCTotal Taxed',
         'AMT.7': 'SCTotal', 'INV_TAXABLE_TOTAL.7': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'SCTotal Taxed',
         'AMT.8': 'GTotal', 'INV_TAXABLE_TOTAL.8': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.8': 'GTotal Taxed'})
 
-    Tendered['VisaMCD'] = Tendered['VisaMCD'].add(Tendered['Cashit'], fill_value=0)
+    Tendered['VisaMCD'] = Tendered['VisaMCD'].add(Tendered['CashitVMD'], fill_value=0)
+    Tendered['AMEX'] = Tendered['AMEX'].add(Tendered['CashitAmex'], fill_value=0)
 
 
 else:
@@ -661,8 +669,11 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                     title(text=Tendered['Cash'][Bank], working_cell=('D' + Row), font=Normal,
                           number_format=Currency, new=True, place=data)
                     # Check Total
-                    title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
-                         number_format=Currency, new=True, place=data)
+                    try:
+                        title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
+                             number_format=Currency, new=True, place=data)
+                    except KeyError:
+                        pass
                     title(text=Tendered['VisaMCD'][Bank], working_cell='L' + Row, font=Normal,
                           number_format=Currency, new=True, place=data)
                     title(text=Tendered['AMEX'][Bank], working_cell='P' + Row, font=Normal,
