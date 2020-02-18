@@ -573,6 +573,9 @@ Month_Range = calendar.monthrange(Year, Month)
 Locations_Info = []
 CellValue = 6
 MonthFirst = 0
+CurrentTax = 0
+FullMonth = 0
+Row = 0
 for BankIndex, Bank in enumerate(Locations_Key.keys()):
     for FullMonth in range(Month_Range[1]):
 
@@ -671,7 +674,7 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                     # Check Total
                     try:
                         title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
-                             number_format=Currency, new=True, place=data)
+                              number_format=Currency, new=True, place=data)
                     except KeyError:
                         pass
                     title(text=Tendered['VisaMCD'][Bank], working_cell='L' + Row, font=Normal,
@@ -892,8 +895,3 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
 if __name__ == '__main__':
     worksheet.dimensions.ColumnDimension(work_sheet, bestFit=True)
     wb.save(filename=filename)
-    """
-    app = QApplication(sys.argv)
-    ex = App()
-    sys.exit(app.exec_())
-    """
