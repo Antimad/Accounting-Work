@@ -116,11 +116,12 @@ if __name__ == '__main__':
     window = FileSelector()
     window.show()
     app.exec_()
-    info = FileSelector().file_search()
-    wb = info[0]
-    work_sheet = wb.active
-    work_sheet.title = calendar.month_name[Month] + ' 2020'
-    filename = info[1]
+
+info = FileSelector().file_search()
+wb = info[0]
+work_sheet = wb.active
+work_sheet.title = calendar.month_name[Month] + ' 2020'
+filename = info[1]
 
 POFile = FileLocations['Location'][0]
 
@@ -451,20 +452,53 @@ RowBorderSeparator = Border(bottom=Side(style='thick'))
 
 
 def obedience(main_report):
-    NTendered = pd.read_excel(main_report, skiprows=4)
-    NTendered.drop([1, 2, 3], inplace=True)
+    NTendered = pd.read_excel(main_report, skiprows=5)
+    NTendered.drop([0, 1, 2], inplace=True)
     NTendered.set_index(['Unnamed: 0'], inplace=True)
     NTendered.index = pd.Series(NTendered.index).fillna(method='ffill')
     NTendered.dropna(axis='columns', how='all', inplace=True)
-    NTendered['Unnamed: 7'][0] = 'Placeholder'
+    # NTendered['Unnamed: 7'][0] = 'Placeholder'
     NTendered.dropna(axis='index', subset=['Unnamed: 7'], inplace=True)
 
     CurrentColumn = NTendered.columns.to_list()
     NameLessColumn = [name for idx, name in enumerate(CurrentColumn) if 'Unnamed:' not in name]
     RowBelow = NTendered.iloc[0].to_list()
 
-    if 'Cashit Card' in NameLessColumn:
-        pass
+    AMEX_DUPS = V_MC_D = 0
+    for i, name in enumerate(CurrentColumn):
+        Commission = i + 1
+        ItemTax = i + 2
+        if name == 'DOLLARS':
+            CurrentColumn[i] = 'Cash'
+            CurrentColumn[Commission] = 'Cash Commission'
+            CurrentColumn[ItemTax] = 'Cash Taxed'
+
+        if name == 'Check':
+            CurrentColumn[Commission] = 'Check Commission'
+            CurrentColumn[ItemTax] = 'Check Taxed'
+
+        if name == 'AMEX':
+            AMEX_DUPS += 1
+            CurrentColumn[i] = 'AMEX_%s' % AMEX_DUPS
+            CurrentColumn[Commission] = 'AMEX Commission_%s' % AMEX_DUPS
+            CurrentColumn[ItemTax] = 'AMEX Taxed_%s' % AMEX_DUPS
+
+        if name == 'V/MC/D':
+            V_MC_D += 1
+            CurrentColumn[i] = 'VisaMCD_%s' % V_MC_D
+            CurrentColumn[Commission] = 'VisaMCD Commission_%s' % V_MC_D
+            CurrentColumn[ItemTax] = 'VisaMCD Taxed_%s' % V_MC_D
+
+        if name == 'Gift Card':
+            CurrentColumn[i] = 'GCTotal'
+            CurrentColumn[Commission] = 'GCTotal Commission'
+            CurrentColumn[ItemTax] = 'GCTotal Taxed'
+
+        if name == 'Store Credit':
+            CurrentColumn[i] = 'SCTotal'
+            CurrentColumn[Commission] = 'SCTotal Commission'
+            CurrentColumn[ItemTax] = 'SCTotal Taxed'
+
 
 
 if 'PPL' in TenderedHigherNames:
