@@ -556,7 +556,6 @@ else:
         'AMT.7': 'GTotal', 'INV_TAXABLE_TOTAL.7': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'GTotal Taxed'})
 
 Currency = '$#,##0.00_);[Red]($#,##0.00)'
-
 Month_Range = calendar.monthrange(Year, Month)
 Locations_Info = []
 CellValue = 6
