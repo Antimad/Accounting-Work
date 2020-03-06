@@ -140,6 +140,82 @@ FileLocations = FileLocations.drop_duplicates()
 
 Tendered = EmpDisc = TaxFreeSales = RedeemedGC = PurchasedGC = CreditMemo = None
 
+
+def obedience(main_report):
+    NTendered = pd.read_excel(main_report, skiprows=5)
+    NTendered.drop([0, 1, 2], inplace=True)
+    NTendered.set_index(['Unnamed: 0'], inplace=True)
+    NTendered.index = pd.Series(NTendered.index).fillna(method='ffill')
+    NTendered.dropna(axis='columns', how='all', inplace=True)
+    NTendered.dropna(axis='index', subset=['Unnamed: 7'], inplace=True)
+
+    CurrentColumn = NTendered.columns.to_list()
+
+    AMEX_DUPS = V_MC_D = 1
+    for i, name in enumerate(CurrentColumn):
+        Commission = i + 1
+        ItemTax = i + 2
+        if name == 'DOLLARS':
+            CurrentColumn[i] = 'Cash'
+            CurrentColumn[Commission] = 'Cash Commission'
+            CurrentColumn[ItemTax] = 'Cash Taxed'
+
+        if name == 'Check':
+            CurrentColumn[Commission] = 'Check Commission'
+            CurrentColumn[ItemTax] = 'Check Taxed'
+
+        if name == 'AMEX.1':
+            AMEX_DUPS += 1
+            CurrentColumn[i] = 'AMEX_%s' % AMEX_DUPS
+            CurrentColumn[Commission] = 'AMEX Commission_%s' % AMEX_DUPS
+            CurrentColumn[ItemTax] = 'AMEX Taxed_%s' % AMEX_DUPS
+
+        if name == 'V/MC/D.1':
+            V_MC_D += 1
+            CurrentColumn[i] = 'VisaMCD_%s' % V_MC_D
+            CurrentColumn[Commission] = 'VisaMCD Commission_%s' % V_MC_D
+            CurrentColumn[ItemTax] = 'VisaMCD Taxed_%s' % V_MC_D
+
+        if name == 'V/MC/D':
+            CurrentColumn[i] = 'VisaMCD_1'
+            CurrentColumn[Commission] = 'VisaMCD Commission'
+            CurrentColumn[ItemTax] = 'VisaMCD Taxed'
+
+        if name == 'AMEX':
+            CurrentColumn[i] = 'AMEX_1'
+            CurrentColumn[Commission] = 'AMEX Commission'
+            CurrentColumn[ItemTax] = 'AMEX Taxed'
+
+        if name == 'Gift Card':
+            CurrentColumn[i] = 'GCTotal'
+            CurrentColumn[Commission] = 'GCTotal Commission'
+            CurrentColumn[ItemTax] = 'GCTotal Taxed'
+
+        if name == 'Store Credit':
+            CurrentColumn[i] = 'SCTotal'
+            CurrentColumn[Commission] = 'SCTotal Commission'
+            CurrentColumn[ItemTax] = 'SCTotal Taxed'
+
+    CurrentColumn[-3] = 'GTotal'
+    CurrentColumn[-2] = 'GTotal Commission'
+    CurrentColumn[-1] = 'GTotal Taxed'
+    CurrentColumn[0] = 'Date'
+
+    NTendered.columns = CurrentColumn
+
+    if AMEX_DUPS == 2:
+        NTendered['AMEX'] = NTendered['AMEX_1'].add(NTendered['AMEX_2'], fill_value=0)
+    else:
+        NTendered.rename(columns={'AMEX_1': 'AMEX'}, inplace=True)
+
+    if V_MC_D == 2:
+        NTendered['VisaMCD'] = NTendered['VisaMCD_1'].add(NTendered['VisaMCD_2'], fill_value=0)
+    else:
+        NTendered.rename(columns={'VisaMCD_1': 'VisaMCD'}, inplace=True)
+
+    return NTendered
+
+
 if FileLocations['Location']['Directory']:
     for index, folder_files in enumerate(os.listdir(FileLocations['Location']['Directory'])):
         for report in range(len(files)):
@@ -148,10 +224,7 @@ if FileLocations['Location']['Directory']:
                     TenderReport = FileLocations['Location']['Directory'] + '/' + folder_files
                     while True:
                         try:
-                            TenderedHigherNames = pd.read_excel(TenderReport, skiprows=4).columns
-                            Tendered = pd.read_excel(TenderReport, skiprows=7)
-                            Tendered = Tendered.set_index(['Unnamed: 0'])
-                            Tendered.index = pd.Series(Tendered.index).fillna(method='ffill')
+                            Tendered = obedience(TenderReport)
                             break
                         except NameError:
                             print("The Tender Report must be named 'Tender' only")
@@ -450,57 +523,7 @@ labels()
 RowFillSeparator = PatternFill(fill_type='solid', start_color='FFFF0000', end_color='FFFF0000')
 RowBorderSeparator = Border(bottom=Side(style='thick'))
 
-
-def obedience(main_report):
-    NTendered = pd.read_excel(main_report, skiprows=5)
-    NTendered.drop([0, 1, 2], inplace=True)
-    NTendered.set_index(['Unnamed: 0'], inplace=True)
-    NTendered.index = pd.Series(NTendered.index).fillna(method='ffill')
-    NTendered.dropna(axis='columns', how='all', inplace=True)
-    # NTendered['Unnamed: 7'][0] = 'Placeholder'
-    NTendered.dropna(axis='index', subset=['Unnamed: 7'], inplace=True)
-
-    CurrentColumn = NTendered.columns.to_list()
-    NameLessColumn = [name for idx, name in enumerate(CurrentColumn) if 'Unnamed:' not in name]
-    RowBelow = NTendered.iloc[0].to_list()
-
-    AMEX_DUPS = V_MC_D = 0
-    for i, name in enumerate(CurrentColumn):
-        Commission = i + 1
-        ItemTax = i + 2
-        if name == 'DOLLARS':
-            CurrentColumn[i] = 'Cash'
-            CurrentColumn[Commission] = 'Cash Commission'
-            CurrentColumn[ItemTax] = 'Cash Taxed'
-
-        if name == 'Check':
-            CurrentColumn[Commission] = 'Check Commission'
-            CurrentColumn[ItemTax] = 'Check Taxed'
-
-        if name == 'AMEX':
-            AMEX_DUPS += 1
-            CurrentColumn[i] = 'AMEX_%s' % AMEX_DUPS
-            CurrentColumn[Commission] = 'AMEX Commission_%s' % AMEX_DUPS
-            CurrentColumn[ItemTax] = 'AMEX Taxed_%s' % AMEX_DUPS
-
-        if name == 'V/MC/D':
-            V_MC_D += 1
-            CurrentColumn[i] = 'VisaMCD_%s' % V_MC_D
-            CurrentColumn[Commission] = 'VisaMCD Commission_%s' % V_MC_D
-            CurrentColumn[ItemTax] = 'VisaMCD Taxed_%s' % V_MC_D
-
-        if name == 'Gift Card':
-            CurrentColumn[i] = 'GCTotal'
-            CurrentColumn[Commission] = 'GCTotal Commission'
-            CurrentColumn[ItemTax] = 'GCTotal Taxed'
-
-        if name == 'Store Credit':
-            CurrentColumn[i] = 'SCTotal'
-            CurrentColumn[Commission] = 'SCTotal Commission'
-            CurrentColumn[ItemTax] = 'SCTotal Taxed'
-
-
-
+"""
 if 'PPL' in TenderedHigherNames:
     Tendered = Tendered.rename(columns={
         'Unnamed: 7': 'Date',
@@ -554,7 +577,7 @@ else:
         'AMT.5': 'GCTotal', 'INV_TAXABLE_TOTAL.5': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'GCTotal Taxed',
         'AMT.6': 'SCTotal', 'INV_TAXABLE_TOTAL.6': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'SCTotal Taxed',
         'AMT.7': 'GTotal', 'INV_TAXABLE_TOTAL.7': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'GTotal Taxed'})
-
+"""
 Currency = '$#,##0.00_);[Red]($#,##0.00)'
 Month_Range = calendar.monthrange(Year, Month)
 Locations_Info = []
