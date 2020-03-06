@@ -138,7 +138,7 @@ FileLocations = pd.DataFrame(FileLocations)
 FileLocations = FileLocations.set_index('File Name')
 FileLocations = FileLocations.drop_duplicates()
 
-Tendered = EmpDisc = TaxFreeSales = RedeemedGC = PurchasedGC = CreditMemo = None
+Tendered = EmpDisc = TaxFreeSales = RedeemedGC = PurchasedGC = CreditMemo = Tax_Exempt = None
 
 
 def obedience(main_report):
@@ -523,66 +523,11 @@ labels()
 RowFillSeparator = PatternFill(fill_type='solid', start_color='FFFF0000', end_color='FFFF0000')
 RowBorderSeparator = Border(bottom=Side(style='thick'))
 
-"""
-if 'PPL' in TenderedHigherNames:
-    Tendered = Tendered.rename(columns={
-        'Unnamed: 7': 'Date',
-        'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
-        'AMT.1': 'Check', 'INV_TAXABLE_TOTAL.1': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Check Taxed',
-        'AMT.2': 'AMEX', 'INV_TAXABLE_TOTAL.2': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.2': 'AMEX Taxed',
-        'AMT.3': 'VisaMCD', 'INV_TAXABLE_TOTAL.3': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.3': 'VisaMCD Taxed',
-        'AMT.4': 'CCTotal', 'INV_TAXABLE_TOTAL.4': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'CCTotal Taxed',
-        'AMT.5': 'GCTotal', 'INV_TAXABLE_TOTAL.5': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'GCTotal Taxed',
-        'AMT.7': 'SCTotal', 'INV_TAXABLE_TOTAL.7': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'SCTotal Taxed',
-        'AMT.8': 'GTotal', 'INV_TAXABLE_TOTAL.8': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.8': 'GTotal Taxed'})
-
-if 'Check' not in TenderedHigherNames:
-    Tendered = Tendered.rename(columns={
-        'Unnamed: 7': 'Date',
-        'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
-        # 'AMT.1': 'Check', 'INV_TAXABLE_TOTAL.1': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Check Taxed',
-        'AMT.1': 'AMEX', 'INV_TAXABLE_TOTAL.1': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.1': 'AMEX Taxed',
-        'AMT.2': 'VisaMCD', 'INV_TAXABLE_TOTAL.2': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.2': 'VisaMCD Taxed',
-        'AMT.3': 'CCTotal', 'INV_TAXABLE_TOTAL.3': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.3': 'CCTotal Taxed',
-        'AMT.4': 'GCTotal', 'INV_TAXABLE_TOTAL.4': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'GCTotal Taxed',
-        'AMT.5': 'SCTotal', 'INV_TAXABLE_TOTAL.5': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'SCTotal Taxed',
-        'AMT.6': 'GTotal', 'INV_TAXABLE_TOTAL.6': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'GTotal Taxed'})
-
-elif 'Cashit Card' in TenderedHigherNames:
-    Tendered = Tendered.rename(columns={
-        'Unnamed: 7': 'Date',
-        'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
-        # 'AMT.1': 'CashitAmex', 'INV_TAXABLE_TOTAL.1': 'CashitAmex Commission', \
-        # 'INV_EXT_LINE_TAX_AMT.1': 'CashitAmex Taxed',
-        'AMT.1': 'CashitVMD', 'INV_TAXABLE_TOTAL.1': 'CashitVMD Commission',
-        'INV_EXT_LINE_TAX_AMT.1': 'CashitVMD Taxed',
-        'AMT.2': 'Check', 'INV_TAXABLE_TOTAL.2': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.2': 'Check Taxed',
-        'AMT.3': 'AMEX', 'INV_TAXABLE_TOTAL.3': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.3': 'AMEX Taxed',
-        'AMT.4': 'VisaMCD', 'INV_TAXABLE_TOTAL.4': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.4': 'VisaMCD Taxed',
-        'AMT.5': 'CCTotal', 'INV_TAXABLE_TOTAL.5': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'CCTotal Taxed',
-        'AMT.6': 'GCTotal', 'INV_TAXABLE_TOTAL.6': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'GCTotal Taxed',
-        'AMT.7': 'SCTotal', 'INV_TAXABLE_TOTAL.7': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'SCTotal Taxed',
-        'AMT.8': 'GTotal', 'INV_TAXABLE_TOTAL.8': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.8': 'GTotal Taxed'})
-
-    Tendered['VisaMCD'] = Tendered['VisaMCD'].add(Tendered['CashitVMD'], fill_value=0)
-    # Tendered['AMEX'] = Tendered['AMEX'].add(Tendered['CashitAmex'], fill_value=0)
-else:
-    Tendered = Tendered.rename(columns={
-        'Unnamed: 7': 'Date',
-        'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
-        'AMT.1': 'Check', 'INV_TAXABLE_TOTAL.1': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Check Taxed',
-        'AMT.2': 'AMEX', 'INV_TAXABLE_TOTAL.2': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.2': 'AMEX Taxed',
-        'AMT.3': 'VisaMCD', 'INV_TAXABLE_TOTAL.3': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.3': 'VisaMCD Taxed',
-        'AMT.4': 'CCTotal', 'INV_TAXABLE_TOTAL.4': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'CCTotal Taxed',
-        'AMT.5': 'GCTotal', 'INV_TAXABLE_TOTAL.5': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'GCTotal Taxed',
-        'AMT.6': 'SCTotal', 'INV_TAXABLE_TOTAL.6': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'SCTotal Taxed',
-        'AMT.7': 'GTotal', 'INV_TAXABLE_TOTAL.7': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'GTotal Taxed'})
-"""
 Currency = '$#,##0.00_);[Red]($#,##0.00)'
 Month_Range = calendar.monthrange(Year, Month)
 Locations_Info = []
 CellValue = 6
-MonthFirst = 0
+Row = FullMonth = MonthFirst = CurrentTax = 0
 for BankIndex, Bank in enumerate(Locations_Key.keys()):
     for FullMonth in range(Month_Range[1]):
 
