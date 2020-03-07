@@ -2,7 +2,7 @@ from openpyxl import load_workbook, Workbook, worksheet
 from openpyxl.styles import Font, Border, Side, Alignment, PatternFill
 from openpyxl.formatting.rule import ColorScaleRule
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QGridLayout, QLabel, QInputDialog,
-                             QLineEdit)
+                             QLineEdit, QComboBox)
 from PyQt5 import QtCore
 import string
 import pandas as pd
@@ -22,9 +22,6 @@ files = ['Tender',
          'CM Report',
          'FOLDER CONTAINING ALL FILES...']
 
-Year = 2020
-Month = 3
-
 coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
 FileLocations = {'File Name': [], 'Location': []}
 
@@ -33,12 +30,12 @@ class FileSelector(QWidget):
     def __init__(self):
         # noinspection PyArgumentList
         super(FileSelector, self).__init__()
+        self.comboBox = QComboBox(self)
         self.title = 'Purchase Order File'
         self.left = 900
         self.top = 500
         self.width = 800
         self.height = 200
-        # self.file_search()
         self.greeting()
 
     def greeting(self):
@@ -46,19 +43,36 @@ class FileSelector(QWidget):
         self.setWindowTitle(self.title)
         grid_layout = QGridLayout()
 
-        hello = QLabel('Please select the FOLDER with ALL Source Files', self)
-        hello.setAlignment(QtCore.Qt.AlignCenter)
-        hello.move(QtCore.Qt.AlignCenter + 10, 50)
-        hello.setStyleSheet('font-size:18pt; font-weight:600')
+        hello = QLabel('Please select the FOLDER \n with ALL Source Files', self)
+        hello.move(QtCore.Qt.AlignCenter-50, 50)
+        hello.setStyleSheet('font-size:18pt; font-weight:400')
         grid_layout.addWidget(hello)
+
+        working_month = QLabel('What month are you working on?', self)
+        working_month.move(QtCore.Qt.AlignCenter+250, 50)
+        working_month.setStyleSheet('font-size:18pt; font-weight:400')
+        grid_layout.addWidget(working_month)
+
+        for mth in range(1, 13):
+            self.comboBox.addItem(calendar.month_name[mth])
+        self.comboBox.move(QtCore.Qt.AlignCenter+350, 150)
+        self.comboBox.setCurrentIndex(datetime.datetime.now().month-1)
+
+        self.comboBox.currentTextChanged.connect(self.selected_month)
+
 
         btn = QPushButton('Search', self)
         btn.clicked.connect(self.get_directory)
-        btn.move(QtCore.Qt.AlignCenter + 220, 150)
+        btn.move(QtCore.Qt.AlignCenter+50, 150)
         btn.setStyleSheet('font-size:10pt')
         grid_layout.addWidget(btn)
         # noinspection PyTypeChecker
         btn.clicked.connect(self.close)
+
+    def selected_month(self):
+        item = self.comboBox.currentIndex() + 1
+        print(item)
+        return item
 
     def search_file(self):
         options = QFileDialog.Options()
@@ -117,11 +131,15 @@ if __name__ == '__main__':
     window.show()
     app.exec_()
 
+Year = 2020
 info = FileSelector().file_search()
 wb = info[0]
+filename = info[1]
+Month = FileSelector().selected_month()
 work_sheet = wb.active
 work_sheet.title = calendar.month_name[Month] + ' 2020'
-filename = info[1]
+print(Month)
+
 
 POFile = FileLocations['Location'][0]
 
