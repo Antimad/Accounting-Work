@@ -1,8 +1,8 @@
 from openpyxl import load_workbook, Workbook, worksheet
 from openpyxl.styles import Font, Border, Side, Alignment, PatternFill
 from openpyxl.formatting.rule import ColorScaleRule
-from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QDesktopWidget, QGridLayout, QLabel,
-                             QLineEdit)
+from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QGridLayout, QLabel, QInputDialog,
+                             QLineEdit, QComboBox)
 from PyQt5 import QtCore
 import string
 import pandas as pd
@@ -26,177 +26,213 @@ coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
 FileLocations = {'File Name': [], 'Location': []}
 
 
-class MainWindow(QWidget):
-    switch_window = QtCore.pyqtSignal(str)
-
+class FileSelector(QWidget):
     def __init__(self):
-        super(MainWindow, self).__init__()
-        self.title = 'DSR File Selector'
-        self.left = 10
-        self.top = 10
-        self.width = 320
+        # noinspection PyArgumentList
+        super(FileSelector, self).__init__()
+        self.comboBox = QComboBox(self)
+        self.title = 'Purchase Order File'
+        self.left = 900
+        self.top = 500
+        self.width = 800
         self.height = 200
-        self.init_ui()
-        self.line_edit = QLineEdit()
+        self.greeting()
 
-    def init_ui(self):
-        self.setWindowTitle(self.title)
+    def greeting(self):
         self.setGeometry(self.left, self.top, self.width, self.height)
+        self.setWindowTitle(self.title)
+        grid_layout = QGridLayout()
 
-        # Moving Window to the center of the screen
-        qtRectangle = self.frameGeometry()
-        centerPoint = QDesktopWidget().availableGeometry().center()
-        qtRectangle.moveCenter(centerPoint)
-        self.move(qtRectangle.topLeft())
+        hello = QLabel('Please select the FOLDER \n with ALL Source Files', self)
+        hello.move(QtCore.Qt.AlignCenter-50, 50)
+        hello.setStyleSheet('font-size:18pt; font-weight:400')
+        grid_layout.addWidget(hello)
 
-        grid = QGridLayout()
-        self.setLayout(grid)
-        for coordinate, file in zip(coordinates, files):
-            if file == '':
-                continue
-            if file == 'FOLDER CONTAINING ALL FILES...':
-                fileDirectoryButton = QPushButton(file)
-                grid.addWidget(fileDirectoryButton, *coordinate)
-                fileDirectoryButton.clicked.connect(self.get_directory)
-                label = QLabel('tender')
-                grid.addWidget(label, *(2, 6))
+        working_month = QLabel('What month are you working on?', self)
+        working_month.move(QtCore.Qt.AlignCenter+250, 50)
+        working_month.setStyleSheet('font-size:18pt; font-weight:400')
+        grid_layout.addWidget(working_month)
 
+        for mth in range(1, 13):
+            self.comboBox.addItem(calendar.month_name[mth])
+        self.comboBox.move(QtCore.Qt.AlignCenter+350, 150)
+        self.comboBox.setCurrentIndex(datetime.datetime.now().month-1)
 
-            else:
-                fileSearchButton = QPushButton(file)
-                grid.addWidget(fileSearchButton, *coordinate)
-                fileSearchButton.clicked.connect(self.search_file)
+        self.comboBox.currentTextChanged.connect(self.selected_month)
 
 
-    def switch(self):
-        self.switch_window.emit(self.line_edit.text())
+        btn = QPushButton('Search', self)
+        btn.clicked.connect(self.get_directory)
+        btn.move(QtCore.Qt.AlignCenter+50, 150)
+        btn.setStyleSheet('font-size:10pt')
+        grid_layout.addWidget(btn)
+        # noinspection PyTypeChecker
+        btn.clicked.connect(self.close)
 
+    def selected_month(self):
+        item = self.comboBox.currentIndex() + 1
+        print(item)
+        return item
 
     def search_file(self):
         options = QFileDialog.Options()
-        find_file, _ = QFileDialog.getOpenFileName(self, 'DSR File 1', '',
+        # noinspection PyCallByClass
+        find_file, _ = QFileDialog.getOpenFileName(self, 'Purchase Order', '',
                                                    'Excel Files (*.xlsx *xls)',
                                                    options=options)
-        FileLocations['File Name'].append(self.sender().text())
         FileLocations['Location'].append(find_file)
 
     def get_directory(self):
         dialog = QFileDialog()
-        folder_path = dialog.getExistingDirectory(self, None, 'Select Folder with ALL 6 Files')
+        folder_path = dialog.getExistingDirectory(self, '', 'Select Folder with ALL 6 Files')
         FileLocations['File Name'].append('Directory')
         FileLocations['Location'].append(folder_path)
         dialog.setEnabled(False)
         self.close()
-    """
-    def count_files(self):
-        for file_index, six_files in enumerate(os.listdir(FileLocations['Location']['Directory'])):
-    """
+
+    def get_file_name(self):
+        text, okPressed = QInputDialog.getText(self, 'New File Name', 'Name:', QLineEdit.Normal, '')
+        if okPressed and text != '':
+            return text
+
+    def file_search(self):
+        shelf_files = 'shelve.out'
+        my_shelf = shelve.open(shelf_files)
+        try:
+            working_filename = my_shelf['current_file']
+            work_book = load_workbook(working_filename)
+        except FileNotFoundError:  # This error is because though a filename is on the shelf, but it isn't in the folder
+            name = self.get_file_name()
+            working_filename = name + '.xlsx'
+            my_shelf['current_file'] = working_filename
+            try:
+                work_book = load_workbook(working_filename)
+                print('Found the file')
+            except FileNotFoundError:
+                work_book = Workbook()
+                print('Creating a new file')
+        except KeyError:  # This means that there is no filename on the shelf
+            name = self.get_file_name()
+            working_filename = name + '.xlsx'
+            my_shelf['current_file'] = working_filename
+            try:
+                work_book = load_workbook(working_filename)
+                print('Found the file')
+            except FileNotFoundError:
+                work_book = Workbook()
+                print('Creating a new file')
+        return [work_book, working_filename]
 
 
-class CheckWindow(QWidget):
-    def __init__(self):
-        QWidget.__init__(self)
-        self.setWindowTitle('Files Found')
-        layout = QGridLayout()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    app.setStyle('Fusion')
+    window = FileSelector()
+    window.show()
+    app.exec_()
 
-        self.label = QLabel('testing')
-        layout.addWidget(self.label)
-
-        self.button = QPushButton('Close')
-        self.button.clicked.connect(self.close)
-
-        layout.addWidget(self.button)
-
-        self.setLayout(layout)
-
-
-class Controller:
-    def __init__(self):
-        pass
-
-    def show_main(self):
-        self.window = MainWindow()
-        self.window.switch_window.connect(self.show_window_two)
-        self.window.close()
-        self.window.show()
-
-    def show_window_two(self):
-        self.checkwindow = CheckWindow()
-        self.window.close()
-        self.checkwindow.show()
+Year = 2020
+info = FileSelector().file_search()
+wb = info[0]
+filename = info[1]
+Month = FileSelector().selected_month()
+work_sheet = wb.active
+work_sheet.title = calendar.month_name[Month] + ' 2020'
+print(Month)
 
 
-def file_selector():
-    if __name__ == '__main__':
-        app = QApplication(sys.argv)
-        window = MainWindow()
-        window.show()
-        app.exec_()
+POFile = FileLocations['Location'][0]
 
-file_selector()
 
 def missing_tables(df):
     try:
         df
-        return df
     except NameError:
         df = pd.DataFrame({'A': []})
-        return df
-
+    return df
 
 
 FileLocations = pd.DataFrame(FileLocations)
 FileLocations = FileLocations.set_index('File Name')
 FileLocations = FileLocations.drop_duplicates()
 
-shelf_files = 'shelve.out'
-my_shelf = shelve.open(shelf_files)
+Tendered = EmpDisc = TaxFreeSales = RedeemedGC = PurchasedGC = CreditMemo = Tax_Exempt = None
 
-# TODO: Make filename dependent
-Year = datetime.datetime.now().year
-Month = datetime.datetime.now().month
 
-Tendered = EmpDisc = TaxFreeSales = RedeemedGC = PurchasedGC = CreditMemo = None
+def obedience(main_report):
+    NTendered = pd.read_excel(main_report, skiprows=5)
+    NTendered.drop([0, 1, 2], inplace=True)
+    NTendered.set_index(['Unnamed: 0'], inplace=True)
+    NTendered.index = pd.Series(NTendered.index).fillna(method='ffill')
+    NTendered.dropna(axis='columns', how='all', inplace=True)
+    NTendered.dropna(axis='index', subset=['Unnamed: 7'], inplace=True)
 
-Year = 2020
-Month = 2
+    CurrentColumn = NTendered.columns.to_list()
 
-try:
-    filename = my_shelf['current_file']
-    #filename = 'January Report 2020.xlsx'
-    wb = load_workbook(filename)
-    print('Using the existing file')
-    work_sheet = wb.active
-except FileNotFoundError:  # This error is because though a filename is on the shelf, but it isn't in the folder
-    # TODO: Ask for a new filename
-    filename = my_shelf['current_file']
-    print('%s was the last one used, but can\'t be found, please end this program and '
-          'save it in the folder, or create a new file name' % filename)
-    filename = input() + '.xlsx'
-    my_shelf['current_file'] = filename
-    try:
-        wb = load_workbook(filename)
-        print('Found the file')
-    except FileNotFoundError:
-        wb = Workbook()
-        print('Creating a new file')
+    AMEX_DUPS = V_MC_D = 1
+    for i, name in enumerate(CurrentColumn):
+        Commission = i + 1
+        ItemTax = i + 2
+        if name == 'DOLLARS':
+            CurrentColumn[i] = 'Cash'
+            CurrentColumn[Commission] = 'Cash Commission'
+            CurrentColumn[ItemTax] = 'Cash Taxed'
 
-    work_sheet = wb.active
-    work_sheet.title = calendar.month_name[Month] + ' 2020'  # TODO: make filename dependent
-    my_shelf['SheetName'] = work_sheet.title
-except KeyError:  # This means that there is no filename on the shelf
-    # TODO: Ask for a new filename
-    filename = input('What is the filename you would like to use?') + '.xlsx'
-    my_shelf['current_file'] = filename
-    try:
-        wb = load_workbook(filename)
-        print('Found the file')
-    except FileNotFoundError:
-        wb = Workbook()
-        print('Creating a new file')
-    work_sheet = wb.active
-    work_sheet.title = calendar.month_name[Month] + ' 2020'  # TODO: make filename dependent
-    my_shelf['SheetName'] = work_sheet.title
+        if name == 'Check':
+            CurrentColumn[Commission] = 'Check Commission'
+            CurrentColumn[ItemTax] = 'Check Taxed'
+
+        if name == 'AMEX.1':
+            AMEX_DUPS += 1
+            CurrentColumn[i] = 'AMEX_%s' % AMEX_DUPS
+            CurrentColumn[Commission] = 'AMEX Commission_%s' % AMEX_DUPS
+            CurrentColumn[ItemTax] = 'AMEX Taxed_%s' % AMEX_DUPS
+
+        if name == 'V/MC/D.1':
+            V_MC_D += 1
+            CurrentColumn[i] = 'VisaMCD_%s' % V_MC_D
+            CurrentColumn[Commission] = 'VisaMCD Commission_%s' % V_MC_D
+            CurrentColumn[ItemTax] = 'VisaMCD Taxed_%s' % V_MC_D
+
+        if name == 'V/MC/D':
+            CurrentColumn[i] = 'VisaMCD_1'
+            CurrentColumn[Commission] = 'VisaMCD Commission'
+            CurrentColumn[ItemTax] = 'VisaMCD Taxed'
+
+        if name == 'AMEX':
+            CurrentColumn[i] = 'AMEX_1'
+            CurrentColumn[Commission] = 'AMEX Commission'
+            CurrentColumn[ItemTax] = 'AMEX Taxed'
+
+        if name == 'Gift Card':
+            CurrentColumn[i] = 'GCTotal'
+            CurrentColumn[Commission] = 'GCTotal Commission'
+            CurrentColumn[ItemTax] = 'GCTotal Taxed'
+
+        if name == 'Store Credit':
+            CurrentColumn[i] = 'SCTotal'
+            CurrentColumn[Commission] = 'SCTotal Commission'
+            CurrentColumn[ItemTax] = 'SCTotal Taxed'
+
+    CurrentColumn[-3] = 'GTotal'
+    CurrentColumn[-2] = 'GTotal Commission'
+    CurrentColumn[-1] = 'GTotal Taxed'
+    CurrentColumn[0] = 'Date'
+
+    NTendered.columns = CurrentColumn
+
+    if AMEX_DUPS == 2:
+        NTendered['AMEX'] = NTendered['AMEX_1'].add(NTendered['AMEX_2'], fill_value=0)
+    else:
+        NTendered.rename(columns={'AMEX_1': 'AMEX'}, inplace=True)
+
+    if V_MC_D == 2:
+        NTendered['VisaMCD'] = NTendered['VisaMCD_1'].add(NTendered['VisaMCD_2'], fill_value=0)
+    else:
+        NTendered.rename(columns={'VisaMCD_1': 'VisaMCD'}, inplace=True)
+
+    return NTendered
+
 
 if FileLocations['Location']['Directory']:
     for index, folder_files in enumerate(os.listdir(FileLocations['Location']['Directory'])):
@@ -206,14 +242,10 @@ if FileLocations['Location']['Directory']:
                     TenderReport = FileLocations['Location']['Directory'] + '/' + folder_files
                     while True:
                         try:
-                            TenderedHigherNames = pd.read_excel(TenderReport, skiprows=4).columns
-                            Tendered = pd.read_excel(TenderReport, skiprows=7)
-                            Tendered = Tendered.set_index(['Unnamed: 0'])
-                            Tendered.index = pd.Series(Tendered.index).fillna(method='ffill')
+                            Tendered = obedience(TenderReport)
                             break
                         except NameError:
                             print("The Tender Report must be named 'Tender' only")
-                            TenderReport = file_selector()  # TODO: Get file specifically
 
                 if files[report] == 'EMP Sale':
                     EmpSales = FileLocations['Location']['Directory'] + '/' + folder_files
@@ -225,7 +257,6 @@ if FileLocations['Location']['Directory']:
                             break
                         except NameError:
                             print("The Employee Sales Report must be named 'Employee Sale' only")
-                            EmpSales = file_selector()  # TODO: Get EmpSales Specifically
 
                 if files[report] == 'No Tax':
                     TaxFreeSales = FileLocations['Location']['Directory'] + '/' + folder_files
@@ -237,7 +268,6 @@ if FileLocations['Location']['Directory']:
                             break
                         except NameError:
                             print("The Tax Exemption Report must be named 'Tax Free Sale'")
-                            TaxFreeSales = file_selector()  # TODO: Get tax exempted report specifically
                             continue
 
                 if files[report] == 'Purchased GC':
@@ -250,7 +280,6 @@ if FileLocations['Location']['Directory']:
                             break
                         except NameError:
                             print("The Purchased GCs should be named 'Purchased GC' only")
-                            GC_Sales = file_selector()  # TODO: Get GCSales Location specifically
                             continue
 
                 if files[report] == 'Redeemed GC':
@@ -263,7 +292,6 @@ if FileLocations['Location']['Directory']:
                             break
                         except NameError:
                             print("The Redeemed GCs should be named 'Redeemed GC' only")
-                            GC_Used = file_selector()  # TODO: Get GC_Used
                             continue
 
                 if files[report] == 'CM Report':
@@ -275,36 +303,36 @@ if FileLocations['Location']['Directory']:
                             break
                         except NameError:
                             print("The Credit Memos should be named 'CM Report' only")
-                            CM_Sales_Issuance = file_selector()  # TODO: Get CM Sales specifically
                             continue
 
-
-
 TaxRate = 'Tax Rate.xlsx'
-#PurchasedGC = pd.DataFrame({'A': []})
+# PurchasedGC = pd.DataFrame({'A': []})
 
 EmptyDF = pd.DataFrame({'A': []})
-#data_bases = [Tendered, EmpDisc, TaxFreeSales, RedeemedGC, PurchasedGC, CreditMemo]
+# data_bases = [Tendered, EmpDisc, TaxFreeSales, RedeemedGC, PurchasedGC, CreditMemo]
 
 if EmpDisc is None:
     EmpDisc = EmptyDF
+    print('No Employee Discount file found')
 
 if TaxFreeSales is None:
     Tax_Exempt = EmptyDF
+    print('Tax Exempt file found')
 
 if RedeemedGC is None:
     RedeemedGC = EmptyDF
+    print('No Redeemed GC file found')
 
 if PurchasedGC is None:
     PurchasedGC = EmptyDF
+    print('No Purchased GC file found')
 
 if CreditMemo is None:
     CreditMemo = EmptyDF
+    print('No CreditMemo file found')
 
 Tax = pd.read_excel(TaxRate)
 Tax = Tax.set_index(['Headquarters'])
-
-
 
 try:
     CreditMemo['Invoice #'] = CreditMemo['Invoice #'].fillna(0)
@@ -513,69 +541,11 @@ labels()
 RowFillSeparator = PatternFill(fill_type='solid', start_color='FFFF0000', end_color='FFFF0000')
 RowBorderSeparator = Border(bottom=Side(style='thick'))
 
-if 'PPL' in TenderedHigherNames:
-    Tendered = Tendered.rename(columns={
-        'Unnamed: 7': 'Date',
-        'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
-        'AMT.1': 'Check', 'INV_TAXABLE_TOTAL.1': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Check Taxed',
-        'AMT.2': 'AMEX', 'INV_TAXABLE_TOTAL.2': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.2': 'AMEX Taxed',
-        'AMT.3': 'VisaMCD', 'INV_TAXABLE_TOTAL.3': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.3': 'VisaMCD Taxed',
-        'AMT.4': 'CCTotal', 'INV_TAXABLE_TOTAL.4': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'CCTotal Taxed',
-        'AMT.5': 'GCTotal', 'INV_TAXABLE_TOTAL.5': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'GCTotal Taxed',
-        'AMT.7': 'SCTotal', 'INV_TAXABLE_TOTAL.7': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'SCTotal Taxed',
-        'AMT.8': 'GTotal', 'INV_TAXABLE_TOTAL.8': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.8': 'GTotal Taxed'})
-
-if 'Check' not in TenderedHigherNames:
-    Tendered = Tendered.rename(columns={
-        'Unnamed: 7': 'Date',
-        'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
-        # 'AMT.1': 'Check', 'INV_TAXABLE_TOTAL.1': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Check Taxed',
-        'AMT.1': 'AMEX', 'INV_TAXABLE_TOTAL.1': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.1': 'AMEX Taxed',
-        'AMT.2': 'VisaMCD', 'INV_TAXABLE_TOTAL.2': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.2': 'VisaMCD Taxed',
-        'AMT.3': 'CCTotal', 'INV_TAXABLE_TOTAL.3': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.3': 'CCTotal Taxed',
-        #'AMT.4': 'GCTotal', 'INV_TAXABLE_TOTAL.4': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'GCTotal Taxed',
-        #'AMT.5': 'SCTotal', 'INV_TAXABLE_TOTAL.5': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'SCTotal Taxed',
-        'AMT.4': 'GTotal', 'INV_TAXABLE_TOTAL.4': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'GTotal Taxed'})
-
-if 'Cashit Card' in TenderedHigherNames:
-    Tendered = Tendered.rename(columns={
-        'Unnamed: 7': 'Date',
-        'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
-        'AMT.1': 'CashitAmex', 'INV_TAXABLE_TOTAL.1': 'CashitAmex Commission', 'INV_EXT_LINE_TAX_AMT.1': 'CashitAmex Taxed',
-        'AMT.2': 'CashitVMD', 'INV_TAXABLE_TOTAL.2': 'CashitVMD Commission', 'INV_EXT_LINE_TAX_AMT.2': 'CashitVMD Taxed',
-        #'AMT.3': 'Check', 'INV_TAXABLE_TOTAL.3': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.3': 'Check Taxed',
-        'AMT.4': 'AMEX', 'INV_TAXABLE_TOTAL.4': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.4': 'AMEX Taxed',
-        'AMT.5': 'VisaMCD', 'INV_TAXABLE_TOTAL.5': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.5': 'VisaMCD Taxed',
-        'AMT.6': 'CCTotal', 'INV_TAXABLE_TOTAL.6': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'CCTotal Taxed',
-        #'AMT.7': 'GCTotal', 'INV_TAXABLE_TOTAL.7': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'GCTotal Taxed',
-        'AMT.7': 'SCTotal', 'INV_TAXABLE_TOTAL.7': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'SCTotal Taxed',
-        'AMT.8': 'GTotal', 'INV_TAXABLE_TOTAL.8': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.8': 'GTotal Taxed'})
-
-    Tendered['VisaMCD'] = Tendered['VisaMCD'].add(Tendered['CashitVMD'], fill_value=0)
-    Tendered['AMEX'] = Tendered['AMEX'].add(Tendered['CashitAmex'], fill_value=0)
-
-
-else:
-    Tendered = Tendered.rename(columns={
-        'Unnamed: 7': 'Date',
-        'AMT': 'Cash', 'INV_TAXABLE_TOTAL': 'Cash Commission', 'INV_EXT_LINE_TAX_AMT': 'Cash Taxed',
-        'AMT.1': 'Check', 'INV_TAXABLE_TOTAL.1': 'Check Commission', 'INV_EXT_LINE_TAX_AMT.1': 'Check Taxed',
-        'AMT.2': 'AMEX', 'INV_TAXABLE_TOTAL.2': 'AMEX Commission', 'INV_EXT_LINE_TAX_AMT.2': 'AMEX Taxed',
-        'AMT.3': 'VisaMCD', 'INV_TAXABLE_TOTAL.3': 'VisaMCD Commission', 'INV_EXT_LINE_TAX_AMT.3': 'VisaMCD Taxed',
-        'AMT.4': 'CCTotal', 'INV_TAXABLE_TOTAL.4': 'CCTotal Commission', 'INV_EXT_LINE_TAX_AMT.4': 'CCTotal Taxed',
-        'AMT.5': 'GCTotal', 'INV_TAXABLE_TOTAL.5': 'GCTotal Commission', 'INV_EXT_LINE_TAX_AMT.5': 'GCTotal Taxed',
-        'AMT.6': 'SCTotal', 'INV_TAXABLE_TOTAL.6': 'SCTotal Commission', 'INV_EXT_LINE_TAX_AMT.6': 'SCTotal Taxed',
-        'AMT.7': 'GTotal', 'INV_TAXABLE_TOTAL.7': 'GTotal Commission', 'INV_EXT_LINE_TAX_AMT.7': 'GTotal Taxed'})
-
 Currency = '$#,##0.00_);[Red]($#,##0.00)'
-
 Month_Range = calendar.monthrange(Year, Month)
 Locations_Info = []
 CellValue = 6
-MonthFirst = 0
-CurrentTax = 0
-FullMonth = 0
-Row = 0
+Row = FullMonth = MonthFirst = CurrentTax = 0
 for BankIndex, Bank in enumerate(Locations_Key.keys()):
     for FullMonth in range(Month_Range[1]):
 
@@ -603,7 +573,7 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
             title(text=('=T%s-V%s-AE%s+X%s' % (Row, Row, Row, Row)), working_cell='AD' + Row,
                   font=Normal, number_format=Currency)
         else:
-            title(text=('=T%s-V%s-AE%s+X%s' % (Row, Row, Row, Row)), working_cell='Z' + Row,
+            title(text=('=T%s-V%s-AA%s+X%s' % (Row, Row, Row, Row)), working_cell='Z' + Row,
                   font=Normal, number_format=Currency)
 
         UnTaxed = 0
