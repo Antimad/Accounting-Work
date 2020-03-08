@@ -2,7 +2,7 @@ from openpyxl import load_workbook, Workbook, worksheet
 from openpyxl.styles import Font, Border, Side, Alignment, PatternFill
 from openpyxl.formatting.rule import ColorScaleRule
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QGridLayout, QLabel, QInputDialog,
-                             QLineEdit, QComboBox)
+                             QLineEdit, QComboBox, QVBoxLayout, QSizePolicy, QHBoxLayout)
 from PyQt5 import QtCore
 import string
 import pandas as pd
@@ -24,55 +24,60 @@ files = ['Tender',
 
 coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
 FileLocations = {'File Name': [], 'Location': []}
+ReportTime = {'Year': [], 'Month': []}
+
+
+def on_month_choice(selection):
+    ReportTime['Month'].append(selection+1)
 
 
 class FileSelector(QWidget):
     def __init__(self):
         # noinspection PyArgumentList
         super(FileSelector, self).__init__()
-        self.comboBox = QComboBox(self)
         self.title = 'Purchase Order File'
+        self.selection = ''
         self.left = 900
         self.top = 500
-        self.width = 800
+        self.width = 950
         self.height = 200
+        self.grid_layout = QGridLayout()
+        self.setLayout(self.grid_layout)
         self.greeting()
+        self.month_options()
 
     def greeting(self):
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.setWindowTitle(self.title)
-        grid_layout = QGridLayout()
 
         hello = QLabel('Please select the FOLDER \n with ALL Source Files', self)
-        hello.move(QtCore.Qt.AlignCenter-50, 50)
+        hello.move(QtCore.Qt.AlignCenter, 50)
         hello.setStyleSheet('font-size:18pt; font-weight:400')
-        grid_layout.addWidget(hello)
-
-        working_month = QLabel('What month are you working on?', self)
-        working_month.move(QtCore.Qt.AlignCenter+250, 50)
-        working_month.setStyleSheet('font-size:18pt; font-weight:400')
-        grid_layout.addWidget(working_month)
-
-        for mth in range(1, 13):
-            self.comboBox.addItem(calendar.month_name[mth])
-        self.comboBox.move(QtCore.Qt.AlignCenter+350, 150)
-        self.comboBox.setCurrentIndex(datetime.datetime.now().month-1)
-
-        self.comboBox.currentTextChanged.connect(self.selected_month)
-
+        self.grid_layout.addWidget(hello)
 
         btn = QPushButton('Search', self)
         btn.clicked.connect(self.get_directory)
-        btn.move(QtCore.Qt.AlignCenter+50, 150)
+        btn.move(QtCore.Qt.AlignCenter, 10)
+        #width = btn.fontMetrics().boundingRect('Search').width() + 50
         btn.setStyleSheet('font-size:10pt')
-        grid_layout.addWidget(btn)
+        self.grid_layout.addWidget(btn)
         # noinspection PyTypeChecker
         btn.clicked.connect(self.close)
 
-    def selected_month(self):
-        item = self.comboBox.currentIndex() + 1
-        print(item)
-        return item
+    def month_options(self):
+        working_month = QLabel('What month are you working on?', self)
+        working_month.move(QtCore.Qt.AlignCenter+350, 50)
+        working_month.setStyleSheet('font-size:18pt; font-weight:400')
+        self.grid_layout.addWidget(working_month)
+        comboBox = QComboBox(self)
+
+        for mth in range(1, 13):
+            comboBox.addItem(calendar.month_name[mth])
+
+        comboBox.move(QtCore.Qt.AlignCenter+350, 150)
+        comboBox.setCurrentIndex(datetime.datetime.now().month-1)
+
+        comboBox.currentIndexChanged.connect(on_month_choice)
 
     def search_file(self):
         options = QFileDialog.Options()
@@ -135,7 +140,7 @@ Year = 2020
 info = FileSelector().file_search()
 wb = info[0]
 filename = info[1]
-Month = FileSelector().selected_month()
+Month = ReportTime['Month'][-1]
 work_sheet = wb.active
 work_sheet.title = calendar.month_name[Month] + ' 2020'
 print(Month)
@@ -317,7 +322,7 @@ if EmpDisc is None:
 
 if TaxFreeSales is None:
     Tax_Exempt = EmptyDF
-    print('Tax Exempt file found')
+    print('No Tax Exempt file found')
 
 if RedeemedGC is None:
     RedeemedGC = EmptyDF
