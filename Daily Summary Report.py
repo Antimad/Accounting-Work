@@ -1,18 +1,19 @@
-from openpyxl import load_workbook, Workbook, worksheet
-from openpyxl.styles import Font, Border, Side, Alignment, PatternFill
-from openpyxl.formatting.rule import ColorScaleRule
-from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QGridLayout, QLabel, QInputDialog,
-                             QLineEdit, QComboBox, QVBoxLayout, QSizePolicy, QHBoxLayout)
-from PyQt5 import QtCore
-import string
-import pandas as pd
 import calendar
 import datetime
-import numpy as np
-import shelve
-import sys
 import os
 import re
+import shelve
+import string
+import sys
+import numpy as np
+import pandas as pd
+from PyQt5 import QtCore
+from PyQt5.QtGui import QRegExpValidator
+from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QGridLayout, QLabel, QInputDialog,
+                             QComboBox, QSizePolicy, QRadioButton, QLineEdit)
+from openpyxl import load_workbook, Workbook, worksheet
+from openpyxl.formatting.rule import ColorScaleRule
+from openpyxl.styles import Font, Border, Side, Alignment, PatternFill
 
 files = ['Tender',
          'EMP Sale',
@@ -22,9 +23,13 @@ files = ['Tender',
          'CM Report',
          'FOLDER CONTAINING ALL FILES...']
 
+Date = datetime.datetime.now()
 coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
 FileLocations = {'File Name': [], 'Location': []}
-ReportTime = {'Year': [], 'Month': []}
+ReportTime = {'Year': [], 'Month': [Date.month]}
+info = []
+shelf_files = 'shelve.out'
+my_shelf = shelve.open(shelf_files)
 
 
 def on_month_choice(selection):
@@ -32,52 +37,146 @@ def on_month_choice(selection):
 
 
 class FileSelector(QWidget):
+    NewFile = '%s Report 2020' % calendar.month_name[Date.month]
+
     def __init__(self):
         # noinspection PyArgumentList
         super(FileSelector, self).__init__()
-        self.title = 'Purchase Order File'
+        self.option = None
+        self.title = 'Daily Summary Report'
         self.selection = ''
+        self.FileName = QLineEdit(self)
+        self.change_btn = QPushButton(self)
+        reg_ex = QtCore.QRegExp("[a-z-A-Z_0-9_. ]+")
+        input_validator = QRegExpValidator(reg_ex, self.FileName)
+        self.FileName.setValidator(input_validator)
         self.left = 900
         self.top = 500
-        self.width = 950
+        self.width = 450
         self.height = 200
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
+        self.grid_layout.setHorizontalSpacing(40)
         self.greeting()
         self.month_options()
+        self.year_options()
+        self.file_name_entrance()
+        self.layout().setSpacing(50)
 
     def greeting(self):
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.setWindowTitle(self.title)
 
-        hello = QLabel('Please select the FOLDER \n with ALL Source Files', self)
-        hello.move(QtCore.Qt.AlignCenter, 50)
-        hello.setStyleSheet('font-size:18pt; font-weight:400')
-        self.grid_layout.addWidget(hello)
+        hello = QLabel('Folder:', self)
+        # hello.move(QtCore.Qt.AlignCenter, 50)
+        hello.setStyleSheet('font-size:18pt; font-weight:200')
+        self.grid_layout.addWidget(hello, 1, 0)
 
         btn = QPushButton('Search', self)
         btn.clicked.connect(self.get_directory)
-        btn.move(QtCore.Qt.AlignCenter, 10)
-        #width = btn.fontMetrics().boundingRect('Search').width() + 50
+        # btn.move(QtCore.Qt.AlignCenter, 10)
+        btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         btn.setStyleSheet('font-size:10pt')
-        self.grid_layout.addWidget(btn)
+        self.grid_layout.addWidget(btn, 2, 0)
         # noinspection PyTypeChecker
         btn.clicked.connect(self.close)
 
     def month_options(self):
-        working_month = QLabel('What month are you working on?', self)
-        working_month.move(QtCore.Qt.AlignCenter+350, 50)
-        working_month.setStyleSheet('font-size:18pt; font-weight:400')
-        self.grid_layout.addWidget(working_month)
+        working_month = QLabel('Month:', self)
+        working_month.setStyleSheet('font-size:18pt; font-weight:200')
+        self.grid_layout.addWidget(working_month, 1, 2)
         comboBox = QComboBox(self)
+        comboBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.grid_layout.addWidget(comboBox, 2, 2)
 
         for mth in range(1, 13):
             comboBox.addItem(calendar.month_name[mth])
 
         comboBox.move(QtCore.Qt.AlignCenter+350, 150)
-        comboBox.setCurrentIndex(datetime.datetime.now().month-1)
+        comboBox.setCurrentIndex(Date.month-1)
 
         comboBox.currentIndexChanged.connect(on_month_choice)
+
+    def year_options(self):
+        current_year = Date.year
+
+        year = QRadioButton(str(current_year))
+        year.option = str(current_year)
+        year.toggled.connect(self.on_year_choice)
+        year.setChecked(True)
+        self.grid_layout.addWidget(year, 3, 1)
+
+        year_M1 = QRadioButton(str(current_year-1))
+        year_M1.option = str(current_year-1)
+        year_M1.toggled.connect(self.on_year_choice)
+        self.grid_layout.addWidget(year_M1, 3, 0)
+
+        year_P1 = QRadioButton(str(current_year+1))
+        year_P1.option = str(current_year+1)
+        year_P1.toggled.connect(self.on_year_choice)
+        self.grid_layout.addWidget(year_P1, 3, 2)
+
+    def on_year_choice(self):
+        choice = self.sender()
+        if choice.isChecked():
+            ReportTime['Year'].append(int(choice.option))
+            print(choice.option)
+
+    def file_name_entrance(self):
+        self.FileName.setReadOnly(True)
+        self.grid_layout.addWidget(self.FileName, 0, 1, 1, 2)
+
+        self.change_btn.setText('Change')
+        self.change_btn.clicked.connect(self.change_requested)
+        self.grid_layout.addWidget(self.change_btn, 0, 0)
+        try:
+            self.FileName.setPlaceholderText(str(my_shelf['current_file']).replace('.xlsx', '') +
+                                             ' will be used')
+            working_filename = my_shelf['current_file']
+            work_book = load_workbook(working_filename)
+        except KeyError:  # This means that there is no report on the shelf
+            self.FileName.setPlaceholderText('What is the name of the report?')
+            self.change_requested()
+            name = FileSelector.NewFile
+            working_filename = name + '.xlsx'
+            my_shelf['current_file'] = working_filename
+            try:
+                work_book = load_workbook(working_filename)
+                # print('Found the file')
+            except FileNotFoundError:
+                work_book = Workbook()
+                # print('Creating a new file')
+        except FileNotFoundError:  # This error is because though a filename is on the shelf, but it isn't in the folder
+            working_filename = str(my_shelf['current_file'])
+            self.FileName.setPlaceholderText(working_filename.replace('.xlsx', '') + " wasn't found")
+            name = FileSelector.NewFile
+            working_filename = name.replace('.xlsx', '') + '.xlsx'
+            print(working_filename)
+            my_shelf['current_file'] = working_filename
+            try:
+                work_book = load_workbook(working_filename)
+                print('Found the file')
+                self.FileName.setPlaceholderText(working_filename.replace('.xlsx', '') + " wasn't found")
+            except FileNotFoundError:
+                work_book = Workbook()
+                print('Creating a new file')
+        info.append(work_book)
+
+    def change_requested(self):
+        self.FileName.setReadOnly(False)
+        self.grid_layout.removeWidget(self.change_btn)
+        self.change_btn.deleteLater()
+        self.change_btn = None
+        save_btn = QPushButton('Save', self)
+        self.grid_layout.addWidget(save_btn, 0, 0)
+        save_btn.clicked.connect(self.save_file)
+
+    def save_file(self):
+        if not self.FileName.text().isspace() and self.FileName.text() != '':
+            print('no blanks here', self.FileName.text())
+            FileSelector.NewFile = self.FileName.text() + '.xlsx'
+            my_shelf['current_file'] = FileSelector.NewFile
+            self.FileName.setText(FileSelector.NewFile.replace('.xlsx', '') + ' Saved!')
 
     def search_file(self):
         options = QFileDialog.Options()
@@ -95,39 +194,6 @@ class FileSelector(QWidget):
         dialog.setEnabled(False)
         self.close()
 
-    def get_file_name(self):
-        text, okPressed = QInputDialog.getText(self, 'New File Name', 'Name:', QLineEdit.Normal, '')
-        if okPressed and text != '':
-            return text
-
-    def file_search(self):
-        shelf_files = 'shelve.out'
-        my_shelf = shelve.open(shelf_files)
-        try:
-            working_filename = my_shelf['current_file']
-            work_book = load_workbook(working_filename)
-        except FileNotFoundError:  # This error is because though a filename is on the shelf, but it isn't in the folder
-            name = self.get_file_name()
-            working_filename = name + '.xlsx'
-            my_shelf['current_file'] = working_filename
-            try:
-                work_book = load_workbook(working_filename)
-                print('Found the file')
-            except FileNotFoundError:
-                work_book = Workbook()
-                print('Creating a new file')
-        except KeyError:  # This means that there is no filename on the shelf
-            name = self.get_file_name()
-            working_filename = name + '.xlsx'
-            my_shelf['current_file'] = working_filename
-            try:
-                work_book = load_workbook(working_filename)
-                print('Found the file')
-            except FileNotFoundError:
-                work_book = Workbook()
-                print('Creating a new file')
-        return [work_book, working_filename]
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -136,15 +202,13 @@ if __name__ == '__main__':
     window.show()
     app.exec_()
 
-Year = 2020
-info = FileSelector().file_search()
+my_shelf.sync()
 wb = info[0]
-filename = info[1]
+filename = FileSelector.NewFile
 Month = ReportTime['Month'][-1]
+Year = ReportTime['Year'][-1]
 work_sheet = wb.active
 work_sheet.title = calendar.month_name[Month] + ' 2020'
-print(Month)
-
 
 POFile = FileLocations['Location'][0]
 
