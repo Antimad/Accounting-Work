@@ -8,7 +8,7 @@ import sys
 import numpy as np
 import pandas as pd
 from PyQt5 import QtCore
-from PyQt5.QtGui import QRegExpValidator
+from PyQt5.QtGui import QRegExpValidator, QIcon
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QGridLayout, QLabel, QInputDialog,
                              QComboBox, QSizePolicy, QRadioButton, QLineEdit)
 from openpyxl import load_workbook, Workbook, worksheet
@@ -31,6 +31,8 @@ info = []
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
 
+icon = r'C:\\Users\\Uchenna\\Documents\\Python\\Icon\\Nadeau.png'
+
 
 def on_month_choice(selection):
     ReportTime['Month'].append(selection+1)
@@ -44,6 +46,7 @@ class FileSelector(QWidget):
         super(FileSelector, self).__init__()
         self.option = None
         self.title = 'Daily Summary Report'
+        self.setWindowIcon(QIcon(icon))
         self.selection = ''
         self.FileName = QLineEdit(self)
         self.change_btn = QPushButton(self)
@@ -61,7 +64,7 @@ class FileSelector(QWidget):
         self.month_options()
         self.year_options()
         self.file_name_entrance()
-        self.layout().setSpacing(50)
+        self.layout().setSpacing(25)
 
     def greeting(self):
         self.setGeometry(self.left, self.top, self.width, self.height)
@@ -69,21 +72,21 @@ class FileSelector(QWidget):
 
         hello = QLabel('Folder:', self)
         # hello.move(QtCore.Qt.AlignCenter, 50)
-        hello.setStyleSheet('font-size:18pt; font-weight:200')
+        hello.setStyleSheet('font:18pt "Segoe"; font-weight:200')
         self.grid_layout.addWidget(hello, 1, 0)
 
         btn = QPushButton('Search', self)
         btn.clicked.connect(self.get_directory)
         # btn.move(QtCore.Qt.AlignCenter, 10)
         btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        btn.setStyleSheet('font-size:10pt')
+        btn.setStyleSheet('font:10pt "Segoe"')
         self.grid_layout.addWidget(btn, 2, 0)
         # noinspection PyTypeChecker
         btn.clicked.connect(self.close)
 
     def month_options(self):
         working_month = QLabel('Month:', self)
-        working_month.setStyleSheet('font-size:18pt; font-weight:200')
+        working_month.setStyleSheet('font:18pt "Segoe"; font-weight:200')
         self.grid_layout.addWidget(working_month, 1, 2)
         comboBox = QComboBox(self)
         comboBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -92,7 +95,7 @@ class FileSelector(QWidget):
         for mth in range(1, 13):
             comboBox.addItem(calendar.month_name[mth])
 
-        comboBox.move(QtCore.Qt.AlignCenter+350, 150)
+        # comboBox.move(QtCore.Qt.AlignCenter+350, 150)
         comboBox.setCurrentIndex(Date.month-1)
 
         comboBox.currentIndexChanged.connect(on_month_choice)
@@ -130,33 +133,33 @@ class FileSelector(QWidget):
         self.change_btn.clicked.connect(self.change_requested)
         self.grid_layout.addWidget(self.change_btn, 0, 0)
         try:
-            self.FileName.setPlaceholderText(str(my_shelf['current_file']).replace('.xlsx', '') +
+            self.FileName.setPlaceholderText(str(my_shelf['current_file']) +
                                              ' will be used')
             working_filename = my_shelf['current_file']
-            work_book = load_workbook(working_filename)
+            work_book = load_workbook(working_filename + '.xlsx')
         except KeyError:  # This means that there is no report on the shelf
             self.FileName.setPlaceholderText('What is the name of the report?')
             self.change_requested()
             name = FileSelector.NewFile
-            working_filename = name + '.xlsx'
+            working_filename = name
             my_shelf['current_file'] = working_filename
             try:
-                work_book = load_workbook(working_filename)
+                work_book = load_workbook(working_filename + '.xlsx')
                 # print('Found the file')
             except FileNotFoundError:
                 work_book = Workbook()
                 # print('Creating a new file')
         except FileNotFoundError:  # This error is because though a filename is on the shelf, but it isn't in the folder
             working_filename = str(my_shelf['current_file'])
-            self.FileName.setPlaceholderText(working_filename.replace('.xlsx', '') + " wasn't found")
+            self.FileName.setPlaceholderText(working_filename + " wasn't found")
             name = FileSelector.NewFile
-            working_filename = name.replace('.xlsx', '') + '.xlsx'
+            working_filename = name
             print(working_filename)
             my_shelf['current_file'] = working_filename
             try:
-                work_book = load_workbook(working_filename)
+                work_book = load_workbook(working_filename + '.xlsx')
                 print('Found the file')
-                self.FileName.setPlaceholderText(working_filename.replace('.xlsx', '') + " wasn't found")
+                self.FileName.setPlaceholderText(working_filename + " wasn't found")
             except FileNotFoundError:
                 work_book = Workbook()
                 print('Creating a new file')
@@ -174,9 +177,9 @@ class FileSelector(QWidget):
     def save_file(self):
         if not self.FileName.text().isspace() and self.FileName.text() != '':
             print('no blanks here', self.FileName.text())
-            FileSelector.NewFile = self.FileName.text() + '.xlsx'
+            FileSelector.NewFile = self.FileName.text()
             my_shelf['current_file'] = FileSelector.NewFile
-            self.FileName.setText(FileSelector.NewFile.replace('.xlsx', '') + ' Saved!')
+            self.FileName.setText(FileSelector.NewFile + ' Saved!')
 
     def search_file(self):
         options = QFileDialog.Options()
@@ -933,4 +936,4 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
 
 if __name__ == '__main__':
     worksheet.dimensions.ColumnDimension(work_sheet, bestFit=True)
-    wb.save(filename=filename)
+    wb.save(filename=filename + '.xlsx')
