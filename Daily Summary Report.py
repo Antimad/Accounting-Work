@@ -8,8 +8,8 @@ import sys
 import numpy as np
 import pandas as pd
 from PyQt5 import QtCore
-from PyQt5.QtGui import QRegExpValidator, QIcon
-from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QGridLayout, QLabel, QInputDialog,
+from PyQt5.QtGui import QRegExpValidator
+from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QGridLayout, QLabel,
                              QComboBox, QSizePolicy, QRadioButton, QLineEdit)
 from openpyxl import load_workbook, Workbook, worksheet
 from openpyxl.formatting.rule import ColorScaleRule
@@ -28,10 +28,8 @@ coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
 FileLocations = {'File Name': [], 'Location': []}
 ReportTime = {'Year': [], 'Month': [Date.month]}
 info = []
-shelf_files = 'shelve.out'
+shelf_files = 'Delete_if_not_working.out'
 my_shelf = shelve.open(shelf_files)
-
-icon = r'C:\\Users\\Uchenna\\Documents\\Python\\Icon\\Nadeau.png'
 
 
 def on_month_choice(selection):
@@ -46,7 +44,7 @@ class FileSelector(QWidget):
         super(FileSelector, self).__init__()
         self.option = None
         self.title = 'Daily Summary Report'
-        self.setWindowIcon(QIcon(icon))
+        # self.setWindowIcon(QIcon(icon))
         self.selection = ''
         self.FileName = QLineEdit(self)
         self.change_btn = QPushButton(self)
@@ -55,7 +53,7 @@ class FileSelector(QWidget):
         self.FileName.setValidator(input_validator)
         self.left = 900
         self.top = 500
-        self.width = 450
+        self.width = 350
         self.height = 200
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
@@ -121,6 +119,7 @@ class FileSelector(QWidget):
 
     def on_year_choice(self):
         choice = self.sender()
+        # noinspection PyUnresolvedReferences
         if choice.isChecked():
             ReportTime['Year'].append(int(choice.option))
             print(choice.option)
