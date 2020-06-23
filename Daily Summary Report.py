@@ -8,7 +8,7 @@ import sys
 import numpy as np
 import pandas as pd
 from PyQt5 import QtCore
-from PyQt5.QtGui import QRegExpValidator
+from PyQt5.QtGui import QRegExpValidator, QIcon
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QWidget, QPushButton, QGridLayout, QLabel,
                              QComboBox, QSizePolicy, QRadioButton, QLineEdit)
 from openpyxl import load_workbook, Workbook, worksheet
@@ -28,8 +28,10 @@ coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
 FileLocations = {'File Name': [], 'Location': []}
 ReportTime = {'Year': [], 'Month': [Date.month]}
 info = []
-shelf_files = 'Delete_if_not_working.out'
+shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
+
+icon = r'C:\\Users\\Uchenna\\Documents\\Python\\Icon\\Nadeau.png'
 
 
 def on_month_choice(selection):
@@ -44,7 +46,7 @@ class FileSelector(QWidget):
         super(FileSelector, self).__init__()
         self.option = None
         self.title = 'Daily Summary Report'
-        # self.setWindowIcon(QIcon(icon))
+        self.setWindowIcon(QIcon(icon))
         self.selection = ''
         self.FileName = QLineEdit(self)
         self.change_btn = QPushButton(self)
@@ -53,7 +55,7 @@ class FileSelector(QWidget):
         self.FileName.setValidator(input_validator)
         self.left = 900
         self.top = 500
-        self.width = 350
+        self.width = 450
         self.height = 200
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
@@ -210,7 +212,52 @@ filename = FileSelector.NewFile
 Month = ReportTime['Month'][-1]
 Year = ReportTime['Year'][-1]
 work_sheet = wb.active
-work_sheet.title = calendar.month_name[Month] + ' 2020'
+work_sheet.cell_addition = calendar.month_name[Month] + ' 2020'
+
+Cash_Columns = {
+    'Nadeau Reports': 'D',
+    'Per Statements': 'E',
+    'Difference': 'F'
+}
+
+Check_Column = {
+    'Nadeau Reports': 'H',
+    'Per Statements': 'I',
+    'Difference': 'J'
+}
+
+VisaMCD_Column = {
+    'Nadeau Reports': 'L',
+    'Per Statements': 'M',
+    'Difference': 'N'
+}
+
+Amex_Column = {
+    'Nadeau Reports': 'P',
+    'Per Statements': 'Q',
+    'Difference': 'R'
+}
+
+Totals_Column = {
+    'Credit Card': 'S',
+    'Grand Total': 'T',
+    'GC Used': 'U',
+    'Tax Included': 'V'
+}
+
+Trailing_Columns = {
+    'Verification': 'W',
+    'GC bought': 'X',
+    'Tax Exempt': 'Y',
+    'PPS2': 'Z',
+    'Total Employee_1': 'AA',
+    'Difference_1': 'AC',
+    'PP1': 'AD',
+    'Total Employee_2': 'AE',
+    'Difference_2': 'AG'
+
+
+}
 
 POFile = FileLocations['Location'][0]
 
@@ -425,8 +472,7 @@ Locations = ['Alexandria', 'Asheville', 'Austin', 'Baton Rouge', 'Birmingham', '
              'Charlotte', 'Chattanooga', 'Chicago', 'Cincinnati', 'Columbia', 'Dallas', 'Detroit', 'Fort Worth',
              'Houston', 'Huntsville', 'Indianapolis', 'Kansas City', 'Knoxville', 'Little Rock', 'Los Angeles',
              'Louisville', 'Marietta', 'Memphis', 'Miami', 'Minneapolis', 'Nashville', 'New Orleans',
-             'Orlando', 'Paramus', 'Philadelphia', 'Pittsburgh', 'Portland', 'Raleigh', 'San Antonio',
-             'Savannah', 'Sherman Oaks', 'Tampa']
+             'Orlando', 'Paramus', 'Philadelphia', 'Pittsburgh', 'Portland', 'Raleigh', 'Savannah', 'Tampa']
 
 Locations_Key = {
     'Birmingham': 'AL (HOMEWOOD)',
@@ -466,7 +512,7 @@ Locations_Key = {
     'Dallas': 'TX (DALLAS)',
     'Houston': 'TX1 (HOUSTON)',
     'Austin': 'TX2 (AUSTIN)',
-    'San Antonio': 'TX3 (SAN ANTONIO)',
+    # 'San Antonio': 'TX3 (SAN ANTONIO)',
     # 'Fort Worth': 'TX4 (FT WORTH)',  # Closes near end of January
     'Alexandria': 'VA (ALEXANDRIA)'
 }
@@ -483,8 +529,9 @@ TitleBorder = Border(top=Side(border_style='thin', color='000000'),
                      bottom=Side(border_style='thin', color='000000'))
 
 
-def title(text, working_cell, font, new=False, alignment=None, border=None, merge='A1', number_format='General',
-          column_width=False, place=0):
+
+def cell_addition(text, working_cell, font, new=False, alignment=None, border=None, merge='A1', number_format='General',
+                  column_width=False, place=0):
     if new:
         try:
             text = text.iat[place]
@@ -538,24 +585,24 @@ def labels():
     Start of Row 4 Titles
 
     """
-    title(text='Cash/Check', merge='D4:J4', working_cell='D4', font=Bold, alignment=Hor_Center)
+    cell_addition(text='Cash/Check', merge='D4:J4', working_cell='D4', font=Bold, alignment=Hor_Center)
 
-    title(text='CA - Credit Card', merge='L4:R4', working_cell='L4', font=Bold, alignment=Hor_Center)
+    cell_addition(text='CA - Credit Card', merge='L4:R4', working_cell='L4', font=Bold, alignment=Hor_Center)
 
-    title(text='Total Credit Cards', merge='S4:S5', working_cell='S4', font=Bold, alignment=TextWrap, column_width=True)
+    cell_addition(text='Total Credit Cards', merge='S4:S5', working_cell='S4', font=Bold, alignment=TextWrap, column_width=True)
 
-    title(text='GRAND TOTAL SALES', merge='T4:T5', working_cell='T4', font=Bold, alignment=TextWrap, column_width=True)
+    cell_addition(text='GRAND TOTAL SALES', merge='T4:T5', working_cell='T4', font=Bold, alignment=TextWrap, column_width=True)
 
-    title(text='Total Gift Cards Used', merge='U4:U5', working_cell='U4', font=Bold, alignment=TextWrap,
-          column_width=True)
+    cell_addition(text='Total Gift Cards Used', merge='U4:U5', working_cell='U4', font=Bold, alignment=TextWrap,
+                  column_width=True)
 
-    title(text='TAX INCLUDED', merge='V4:V5', working_cell='V4', font=Bold, alignment=TextWrap, column_width=True)
+    cell_addition(text='TAX INCLUDED', merge='V4:V5', working_cell='V4', font=Bold, alignment=TextWrap, column_width=True)
 
-    title(text='TAX EXEMPT', merge='Y4:Y5', working_cell='Y4', font=Bold, alignment=TextWrap, column_width=True)
+    cell_addition(text='TAX EXEMPT', merge='Y4:Y5', working_cell='Y4', font=Bold, alignment=TextWrap, column_width=True)
 
-    title(text='Total Employee', merge='AA4:AA5', working_cell='AA4', font=Bold, alignment=TextWrap, column_width=True)
+    cell_addition(text='Total Employee', merge='AA4:AA5', working_cell='AA4', font=Bold, alignment=TextWrap, column_width=True)
 
-    title(text='Total Employee', merge='AE4:AE5', working_cell='AE4', font=Bold, alignment=TextWrap, column_width=True)
+    cell_addition(text='Total Employee', merge='AE4:AE5', working_cell='AE4', font=Bold, alignment=TextWrap, column_width=True)
 
     """
     End of Row 4 Titles
@@ -566,24 +613,24 @@ def labels():
     Start of Row 5 Titles
 
     """
-    title(text='Cash', font=Bold, alignment=Hor_Center, merge='D5:F5', border=TitleBorder, working_cell='D5')
+    cell_addition(text='Cash', font=Bold, alignment=Hor_Center, merge='D5:F5', border=TitleBorder, working_cell='D5')
 
-    title(text='Check', merge='H5:J5', working_cell='H5', border=TitleBorder, alignment=Hor_Center, font=Bold)
+    cell_addition(text='Check', merge='H5:J5', working_cell='H5', border=TitleBorder, alignment=Hor_Center, font=Bold)
 
-    title(text='Visa/MC/Discover', merge='L5:N5', working_cell='L5', font=Bold, border=TitleBorder,
-          alignment=Hor_Center)
+    cell_addition(text='Visa/MC/Discover', merge='L5:N5', working_cell='L5', font=Bold, border=TitleBorder,
+                  alignment=Hor_Center)
 
-    title(text='Amex', merge='P5:R5', working_cell='P5', font=Bold, border=TitleBorder, alignment=Hor_Center)
+    cell_addition(text='Amex', merge='P5:R5', working_cell='P5', font=Bold, border=TitleBorder, alignment=Hor_Center)
 
-    title(text='GC bought', working_cell='X5', font=BoldRed, alignment=Hor_Center, column_width=True)
+    cell_addition(text='GC bought', working_cell='X5', font=BoldRed, alignment=Hor_Center, column_width=True)
 
-    title(text='PPS2', working_cell='Z5', font=Bold, alignment=Hor_Center)
+    cell_addition(text='PPS2', working_cell='Z5', font=Bold, alignment=Hor_Center)
 
-    title(text='Difference', working_cell='AC5', font=Bold, alignment=Hor_Center, column_width=True)
+    cell_addition(text='Difference', working_cell='AC5', font=Bold, alignment=Hor_Center, column_width=True)
 
-    title(text='PP1', working_cell='AD5', font=Bold, alignment=Hor_Center)
+    cell_addition(text='PP1', working_cell='AD5', font=Bold, alignment=Hor_Center)
 
-    title(text='Difference', working_cell='AG5', font=Bold, alignment=Hor_Center, column_width=True)
+    cell_addition(text='Difference', working_cell='AG5', font=Bold, alignment=Hor_Center, column_width=True)
 
     """
     End of Row 5 Titles
@@ -598,8 +645,8 @@ def labels():
 
     subs = 0
     for letter in range(len(Letters)):
-        title(text=subTitles[subs], working_cell=Letters[letter] + '6', font=Bold, alignment=Hor_Center,
-              column_width=True)
+        cell_addition(text=subTitles[subs], working_cell=Letters[letter] + '6', font=Bold, alignment=Hor_Center,
+                      column_width=True)
         if subs >= 3:
             subs = -1
         subs += 1
@@ -624,28 +671,28 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
         Date = datetime.date(Year, Month, (FullMonth + 1))
         CellValue += 1
         Row = str(CellValue)
-        title(text=Locations_Key[str(Bank)], working_cell=('A' + Row), font=Bold)  # BANK
-        title(text=Date.strftime('%m/%d/%Y'), working_cell=('B' + Row), font=Bold)  # DATE
-        title(text=('=E%s-D%s' % (Row, Row)), working_cell=('F%s' % Row), font=Normal,
-              number_format=Currency)
-        title(text=('=I%s-H%s' % (Row, Row)), working_cell=('J%s' % Row), font=Normal,
-              number_format=Currency)
-        title(text=('=M%s-L%s' % (Row, Row)), working_cell=('N%s' % Row), font=Normal,
-              number_format=Currency)
-        title(text=('=Q%s-P%s' % (Row, Row)), working_cell=('R%s' % Row), font=Normal,
-              number_format=Currency)
-        title(text=('=V%s/(T%s-V%s+X%s-Y%s)' % (Row, Row, Row, Row, Row)), working_cell=('W%s' % Row), font=Normal,
-              number_format='0.0000')
-        title(text=('=L%s+P%s' % (Row, Row)), working_cell='S' + Row, font=Normal,
-              number_format=Currency)
-        title('=S%s+D%s+H%s+U%s' % (Row, Row, Row, Row), working_cell='T' + Row, font=Normal,
-              number_format=Currency)
+        cell_addition(text=Locations_Key[str(Bank)], working_cell=('A' + Row), font=Bold)  # BANK
+        cell_addition(text=Date.strftime('%m/%d/%Y'), working_cell=('B' + Row), font=Bold)  # DATE
+        cell_addition(text=('=E%s-D%s' % (Row, Row)), working_cell=('F%s' % Row), font=Normal,
+                      number_format=Currency)
+        cell_addition(text=('=I%s-H%s' % (Row, Row)), working_cell=('J%s' % Row), font=Normal,
+                      number_format=Currency)
+        cell_addition(text=('=M%s-L%s' % (Row, Row)), working_cell=('N%s' % Row), font=Normal,
+                      number_format=Currency)
+        cell_addition(text=('=Q%s-P%s' % (Row, Row)), working_cell=('R%s' % Row), font=Normal,
+                      number_format=Currency)
+        cell_addition(text=('=V%s/(T%s-V%s+X%s-Y%s)' % (Row, Row, Row, Row, Row)), working_cell=('W%s' % Row), font=Normal,
+                      number_format='0.0000')
+        cell_addition(text=('=L%s+P%s' % (Row, Row)), working_cell='S' + Row, font=Normal,
+                      number_format=Currency)
+        cell_addition('=S%s+D%s+H%s+U%s' % (Row, Row, Row, Row), working_cell='T' + Row, font=Normal,
+                      number_format=Currency)
         if Date.day <= 15:
-            title(text=('=T%s-V%s-AE%s+X%s' % (Row, Row, Row, Row)), working_cell='AD' + Row,
-                  font=Normal, number_format=Currency)
+            cell_addition(text=('=T%s-V%s-AE%s+X%s' % (Row, Row, Row, Row)), working_cell='AD' + Row,
+                          font=Normal, number_format=Currency)
         else:
-            title(text=('=T%s-V%s-AA%s+X%s' % (Row, Row, Row, Row)), working_cell='Z' + Row,
-                  font=Normal, number_format=Currency)
+            cell_addition(text=('=T%s-V%s-AA%s+X%s' % (Row, Row, Row, Row)), working_cell='Z' + Row,
+                          font=Normal, number_format=Currency)
 
         UnTaxed = 0
         GCsPurchased = 0
@@ -654,30 +701,32 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
             try:
                 len(PurchasedGC['Date'][Bank])
                 PurGo = True
+                # noinspection PyTypeChecker
                 for GCs in enumerate(pd.to_datetime(PurchasedGC['Date'][Bank])):
                     if Date == GCs[1]:
                         GCsPurchased -= PurchasedGC['GIVEN'][Bank].iat[GCs[0]]
-                        title(text=GCsPurchased, working_cell='X' + Row, font=Normal, number_format=Currency)
+                        cell_addition(text=GCsPurchased, working_cell='X' + Row, font=Normal, number_format=Currency)
             except TypeError:
                 PurGo = False
                 if pd.to_datetime(PurchasedGC['Date'][Bank]) == Date:
                     GCsPurchased = -PurchasedGC['GIVEN'][Bank]
-                    title(text=GCsPurchased, working_cell='X' + Row, font=Normal, number_format=Currency)
+                    cell_addition(text=GCsPurchased, working_cell='X' + Row, font=Normal, number_format=Currency)
             except KeyError:
                 pass
 
             try:
                 len(RedeemedGC['Date'][Bank])
                 RedGo = True
+                # noinspection PyTypeChecker
                 for RGC in enumerate(pd.to_datetime(RedeemedGC['Date'][Bank])):
                     if Date == RGC[1]:
                         GCsRedeemed += RedeemedGC['TAKEN'][Bank].iat[RGC[0]]
-                        title(text=GCsRedeemed, working_cell='U' + Row, font=Normal, number_format=Currency)
+                        cell_addition(text=GCsRedeemed, working_cell='U' + Row, font=Normal, number_format=Currency)
             except TypeError:
                 RedGo = False
                 if Date == pd.to_datetime(RedeemedGC['Date'][Bank]):
                     GCsRedeemed = RedeemedGC['TAKEN'][Bank]
-                    title(text=GCsRedeemed, working_cell='U' + Row, font=Normal, number_format=Currency)
+                    cell_addition(text=GCsRedeemed, working_cell='U' + Row, font=Normal, number_format=Currency)
             except KeyError:
                 pass
 
@@ -696,7 +745,7 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                     Memo += CreditMemo['AMT'][str(Tax_Exempt['Invoice #'][Bank].iat[TaxFree])]
                                 except (KeyError, IndexError):
                                     pass
-                        title(text=UnTaxed - Memo, working_cell=('Y%s' % Row), font=Normal, number_format=Currency)
+                        cell_addition(text=UnTaxed - Memo, working_cell=('Y%s' % Row), font=Normal, number_format=Currency)
                         UnTaxed = Memo = 0
                     except KeyError:
                         pass
@@ -706,22 +755,22 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                         """
                         TaxFree = 0
                         if Date == pd.to_datetime(Tax_Exempt['Date'][Bank]):
-                            title(text=(Tax_Exempt['Item Subtotal'][Bank]), working_cell=('Y%s' % Row), font=Normal,
-                                  number_format=Currency)
+                            cell_addition(text=(Tax_Exempt['Item Subtotal'][Bank]), working_cell=('Y%s' % Row), font=Normal,
+                                          number_format=Currency)
 
                     # Cash Total
-                    title(text=Tendered['Cash'][Bank], working_cell=('D' + Row), font=Normal,
-                          number_format=Currency, new=True, place=data)
+                    cell_addition(text=Tendered['Cash'][Bank], working_cell=('D' + Row), font=Normal,
+                                  number_format=Currency, new=True, place=data)
                     # Check Total
                     try:
-                        title(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
-                              number_format=Currency, new=True, place=data)
+                        cell_addition(text=Tendered['Check'][Bank], working_cell='H' + Row, font=Normal,
+                                      number_format=Currency, new=True, place=data)
                     except KeyError:
                         pass
-                    title(text=Tendered['VisaMCD'][Bank], working_cell='L' + Row, font=Normal,
-                          number_format=Currency, new=True, place=data)
-                    title(text=Tendered['AMEX'][Bank], working_cell='P' + Row, font=Normal,
-                          number_format=Currency, new=True, place=data)
+                    cell_addition(text=Tendered['VisaMCD'][Bank], working_cell='L' + Row, font=Normal,
+                                  number_format=Currency, new=True, place=data)
+                    cell_addition(text=Tendered['AMEX'][Bank], working_cell='P' + Row, font=Normal,
+                                  number_format=Currency, new=True, place=data)
 
                     GCsPurchased = 0
                     GCsRedeemed = 0
@@ -742,8 +791,8 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
 
                     if np.isnan(SCTotal):
                         GTTaxed = data_frame_try_catch(df=Tendered, group='GTotal Taxed', location=Bank, place=data)
-                        title(text=round(GTTaxed, 2), working_cell='V' + Row,
-                              font=Normal, number_format=Currency)
+                        cell_addition(text=round(GTTaxed, 2), working_cell='V' + Row,
+                                      font=Normal, number_format=Currency)
                         if Date.day <= 15:
                             # PAY PERIOD
                             # This Try Block is adding the Employee payments
@@ -758,19 +807,19 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                         if Date.day == pd.to_datetime(EmpDiscDate).day:
                                             EmpDayTotal += data_frame_try_catch(df=EmpDisc, group='Item Subtotal',
                                                                                 location=Bank, place=discount)
-                                            title(text=EmpDayTotal, working_cell='AE' + Row, font=Normal,
-                                                  number_format=Currency)
+                                            cell_addition(text=EmpDayTotal, working_cell='AE' + Row, font=Normal,
+                                                          number_format=Currency)
                                 except TypeError:
                                     if Date.day == pd.to_datetime(EmpDisc['Date'][Bank]).day:
-                                        title(text=EmpDisc['Item Subtotal'][Bank], working_cell='AE' + Row, font=Normal,
-                                              number_format=Currency)
+                                        cell_addition(text=EmpDisc['Item Subtotal'][Bank], working_cell='AE' + Row, font=Normal,
+                                                      number_format=Currency)
                                     #  print(EmpDisc['Item Subtotal'][Bank], Date.day)
                             except KeyError:
                                 pass
                         else:
                             # PAY PERIODS
-                            title(text=('=T%s-V%s-AA%s+X%s' % (Row, Row, Row, Row)), working_cell='Z' + Row,
-                                  font=Normal, number_format=Currency)
+                            cell_addition(text=('=T%s-V%s-AA%s+X%s' % (Row, Row, Row, Row)), working_cell='Z' + Row,
+                                          font=Normal, number_format=Currency)
                             # This Try Block adds the Employee payments
                             try:
                                 try:
@@ -778,11 +827,11 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                     for discount in range(len(EmpDisc['Date'][Bank])):
                                         if Date == pd.to_datetime(EmpDisc['Date'][Bank].iat[discount]):
                                             EmpDayTotal += EmpDisc['Item Subtotal'][Bank].iat[discount]
-                                        title(text=EmpDayTotal, working_cell='AA' + Row, font=Normal,
-                                              number_format=Currency)
+                                        cell_addition(text=EmpDayTotal, working_cell='AA' + Row, font=Normal,
+                                                      number_format=Currency)
                                 except TypeError:
-                                    title(text=EmpDisc['Item Subtotal'][Bank], working_cell='AA' + Row, font=Normal,
-                                          number_format=Currency)
+                                    cell_addition(text=EmpDisc['Item Subtotal'][Bank], working_cell='AA' + Row, font=Normal,
+                                                  number_format=Currency)
                                     break
                             except KeyError:
                                 pass
@@ -799,22 +848,22 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                                                group='GTotal Taxed', location=Bank, place=data)
                             if elseSC < 0:
 
-                                title(text=(round(elseGCTaxed, 2)
-                                            - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
+                                cell_addition(text=(round(elseGCTaxed, 2)
+                                                    - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
                             else:  # Pretty sure these do the same thing...
-                                title(text=(round(elseGCTaxed, 2)
-                                            - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
+                                cell_addition(text=(round(elseGCTaxed, 2)
+                                                    - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
 
                         else:
                             elseGTTaxed = data_frame_try_catch(df=Tendered, group='GTotal Taxed',
                                                                location=Bank, place=data)
                             if elseSC < 0:
-                                title(text=(round(elseGTTaxed, 2)
-                                            - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
+                                cell_addition(text=(round(elseGTTaxed, 2)
+                                                    - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
                             else:
                                 # SCTax += abs(Tendered['SCTotal Taxed'][Bank].iat[data])
-                                title(text=(round(elseGTTaxed, 2)
-                                            - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
+                                cell_addition(text=(round(elseGTTaxed, 2)
+                                                    - SCTax), working_cell='V' + Row, font=Normal, number_format=Currency)
 
                         if Date.day <= 15:
                             # PAY PERIODS
@@ -828,19 +877,19 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                         if Date.day == pd.to_datetime(fifEmpDate).day:
                                             EmpDayTotal += data_frame_try_catch(df=EmpDisc, group='Item Subtotal',
                                                                                 location=Bank, place=discount)
-                                            title(text=EmpDayTotal, working_cell='AE' + Row, font=Normal,
-                                                  number_format=Currency)
+                                            cell_addition(text=EmpDayTotal, working_cell='AE' + Row, font=Normal,
+                                                          number_format=Currency)
                                 except TypeError:
                                     if Date.day == pd.to_datetime(EmpDisc['Date'][Bank]).day:
-                                        title(text=(EmpDisc['Item Subtotal'][Bank]), working_cell='AE' + Row,
-                                              font=Normal,
-                                              number_format=Currency)
+                                        cell_addition(text=(EmpDisc['Item Subtotal'][Bank]), working_cell='AE' + Row,
+                                                      font=Normal,
+                                                      number_format=Currency)
                                     break
                             except KeyError:
                                 pass
                         else:
-                            title(text=('=T%s-V%s-AA%s+X%s' % (Row, Row, Row, Row)), working_cell='Z' + Row,
-                                  font=Normal, number_format=Currency)
+                            cell_addition(text=('=T%s-V%s-AA%s+X%s' % (Row, Row, Row, Row)), working_cell='Z' + Row,
+                                          font=Normal, number_format=Currency)
                             # This Try Block adds the Employee payments
                             try:
                                 try:
@@ -848,68 +897,109 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
                                     for discount in range(len(EmpDisc['Date'][Bank])):
                                         if Date == pd.to_datetime(EmpDisc['Date'][Bank].iat[discount]):
                                             EmpDayTotal += EmpDisc['Item Subtotal'][Bank].iat[discount]
-                                    title(text=EmpDayTotal, working_cell='AA' + Row, font=Normal,
-                                          number_format=Currency)
+                                    cell_addition(text=EmpDayTotal, working_cell='AA' + Row, font=Normal,
+                                                  number_format=Currency)
                                 except TypeError:
-                                    title(text=EmpDisc['Item Subtotal'][Bank], working_cell='AA' + Row, font=Normal,
-                                          number_format=Currency)
+                                    cell_addition(text=EmpDisc['Item Subtotal'][Bank], working_cell='AA' + Row,
+                                                  font=Normal, number_format=Currency)
                             except KeyError:
                                 pass
     # Full month's total calculations
     CellValue += 1
-    title(text=(Locations_Key[str(Bank)].split(' ')[0] + ' Total'), working_cell=('A' + str(CellValue)), font=Bold,
-          number_format=Currency)  # Total
+    ColumnSummationRange = (int(Row) - FullMonth, CellValue - 1)
+    cell_addition(text=(Locations_Key[str(Bank)].split(' ')[0] + ' Total'), working_cell=('A' + str(CellValue)),
+                  font=Bold, number_format=Currency)  # Total
 
-    title(text=('=SUM(D%s:D%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('D%s' % CellValue), font=Normal,
-          number_format=Currency)  # Cash
-    title(text=('=SUM(E%s:E%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('E%s' % CellValue), font=Normal,
-          number_format=Currency)
-    title(text=('=E%s-D%s' % (CellValue, CellValue)), working_cell=('F%s' % CellValue), font=Normal,
-          number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Cash_Columns['Nadeau Reports'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Cash_Columns['Nadeau Reports'], CellValue)), font=Normal,
+                  number_format=Currency)  # Cash
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Cash_Columns['Per Statements'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Cash_Columns['Per Statements'], CellValue)), font=Normal,
+                  number_format=Currency)
+    cell_addition(text=('=E%s-D%s' % (CellValue, CellValue)),
+                  working_cell=('{0}{1}'.format(Cash_Columns['Difference'], CellValue)), font=Normal,
+                  number_format=Currency)
 
-    title(text=('=SUM(H%s:H%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('H%s' % CellValue), font=Normal,
-          number_format=Currency)  # Check
-    title(text=('=SUM(I%s:I%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('I%s' % CellValue), font=Normal,
-          number_format=Currency)
-    title(text=('=I%s-H%s' % (CellValue, CellValue)), working_cell=('J%s' % CellValue), font=Normal,
-          number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Check_Column['Nadeau Reports'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Check_Column['Nadeau Reports'], CellValue)), font=Normal,
+                  number_format=Currency)  # Check
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Check_Column['Per Statements'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Check_Column['Per Statements'], CellValue)), font=Normal,
+                  number_format=Currency)
+    cell_addition(text=('=I%s-H%s' % (CellValue, CellValue)),
+                  working_cell=('{0}{1}'.format(Check_Column['Difference'], CellValue)), font=Normal,
+                  number_format=Currency)
 
-    title(text=('=SUM(L%s:L%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('L%s' % CellValue), font=Normal,
-          number_format=Currency)  # Visa
-    title(text=('=SUM(M%s:M%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('M%s' % CellValue), font=Normal,
-          number_format=Currency)
-    title(text=('=M%s-L%s' % (CellValue, CellValue)), working_cell=('N%s' % CellValue), font=Normal,
-          number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(VisaMCD_Column['Nadeau Reports'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(VisaMCD_Column['Nadeau Reports'], CellValue)), font=Normal,
+                  number_format=Currency)  # Visa
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(VisaMCD_Column['Per Statements'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(VisaMCD_Column['Per Statements'], CellValue)), font=Normal,
+                  number_format=Currency)
+    cell_addition(text=('=M%s-L%s' % (CellValue, CellValue)),
+                  working_cell=('{0}{1}'.format(VisaMCD_Column['Difference'], CellValue)), font=Normal,
+                  number_format=Currency)
 
-    title(text=('=SUM(P%s:P%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('P%s' % CellValue), font=Normal,
-          number_format=Currency)  # AMEX
-    title(text=('=SUM(Q%s:Q%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('Q%s' % CellValue), font=Normal,
-          number_format=Currency)
-    title(text=('=Q%s-P%s' % (CellValue, CellValue)), working_cell=('R%s' % CellValue), font=Normal,
-          number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Amex_Column['Nadeau Reports'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Amex_Column['Nadeau Reports'], CellValue)), font=Normal,
+                  number_format=Currency)  # AMEX
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Amex_Column['Per Statements'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Amex_Column['Per Statements'], CellValue)), font=Normal,
+                  number_format=Currency)
+    cell_addition(text=('=Q%s-P%s' % (CellValue, CellValue)),
+                  working_cell=('{0}{1}'.format(Amex_Column['Difference'], CellValue)), font=Normal,
+                  number_format=Currency)
 
-    title(text=('=SUM(S%s:S%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('S%s' % CellValue), font=Normal,
-          number_format=Currency)
-    title(text=('=SUM(T%s:T%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('T%s' % CellValue), font=Normal,
-          number_format=Currency)
-    title(text=('=SUM(U%s:U%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('U%s' % CellValue), font=Normal,
-          number_format=Currency)
-    title(text=('=SUM(V%s:V%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('V%s' % CellValue), font=Normal,
-          number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Totals_Column['Credit Card'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Totals_Column['Credit Card'], CellValue)), font=Normal,
+                  number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Totals_Column['Grand Total'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Totals_Column['Grand Total'], CellValue)), font=Normal,
+                  number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Totals_Column['GC Used'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Totals_Column['GC Used'], CellValue)), font=Normal,
+                  number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Totals_Column['Tax Included'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Totals_Column['Tax Included'], CellValue)), font=Normal,
+                  number_format=Currency)
 
-    title(text=('=SUM(X%s:X%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('X%s' % CellValue), font=Normal,
-          number_format=Currency)
-    title(text=('=SUM(Z%s:Z%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('Z%s' % CellValue), font=Normal,
-          number_format=Currency)
-    title(text=('=SUM(AA%s:AA%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('AA%s' % CellValue),
-          font=Normal, number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Trailing_Columns['GC bought'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Trailing_Columns['GC bought'], CellValue)), font=Normal,
+                  number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Trailing_Columns['GC bought'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Trailing_Columns['PPS2'], CellValue)), font=Normal,
+                  number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Trailing_Columns['Total Employee_1'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Trailing_Columns['Total Employee_1'], CellValue)),
+                  font=Normal, number_format=Currency)
 
-    title(text=('=SUM(AD%s:AD%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('AD%s' % CellValue),
-          font=Normal, number_format=Currency)
-    title(text=('=SUM(AE%s:AE%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('AE%s' % CellValue),
-          font=Normal, number_format=Currency)
-    title(text=('=SUM(Z%s:AD%s)' % (int(Row) - FullMonth, CellValue - 1)), working_cell=('AG%s' % CellValue),
-          font=Normal, number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Trailing_Columns['PP1'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Trailing_Columns['PP1'], CellValue)),
+                  font=Normal, number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Trailing_Columns['Total Employee_2'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Trailing_Columns['Total Employee_2'], CellValue)),
+                  font=Normal, number_format=Currency)
+    cell_addition(text=('=SUM({0}{1}:{0}{2})'.format(Trailing_Columns['Difference_2'], ColumnSummationRange[0],
+                                                     ColumnSummationRange[1])),
+                  working_cell=('{0}{1}'.format(Trailing_Columns['Difference_2'], CellValue)),
+                  font=Normal, number_format=Currency)
 
     RED = 'AA0000'
     babyBLUE = '00ABFF'
@@ -926,7 +1016,8 @@ for BankIndex, Bank in enumerate(Locations_Key.keys()):
 
     # dxf = DifferentialStyle(fill=RED)
 
-    work_sheet.conditional_formatting.add(('W%s:W%s' % (int(Row) - FullMonth, CellValue - 1)), rule)
+    work_sheet.conditional_formatting.add(('{0}{1}:{0}{2}'.format(Trailing_Columns['Verification'],
+                                                                  int(Row) - FullMonth, CellValue - 1)), rule)
 
     for cell in work_sheet[CellValue:CellValue]:
         cell.border = RowBorderSeparator
