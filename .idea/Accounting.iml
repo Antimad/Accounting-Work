@@ -6,13 +6,5 @@
     </content>
     <orderEntry type="jdk" jdkName="Python 3.8 (Accounting-Work)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="Human Resources" />
-    <orderEntry type="module" module-name="Brian" />
-    <orderEntry type="module" module-name="Data" />
-    <orderEntry type="module" module-name="Logistics" />
-    <orderEntry type="module" module-name="Purchasing" />
-    <orderEntry type="module" module-name="Inventory" />
-    <orderEntry type="module" module-name="DataTeam" />
-    <orderEntry type="module" module-name="Quickstart" />
   </component>
 </module>
