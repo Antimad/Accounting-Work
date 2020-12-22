@@ -5,9 +5,12 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/Accounting.iml" filepath="$PROJECT_DIR$/.idea/Accounting.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Brian/.idea/Brian.iml" filepath="$PROJECT_DIR$/../Brian/.idea/Brian.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Data/.idea/Data.iml" filepath="$PROJECT_DIR$/../Data/.idea/Data.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../DataTeam/.idea/DataTeam.iml" filepath="$PROJECT_DIR$/../DataTeam/.idea/DataTeam.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Human Resources/.idea/Human Resources.iml" filepath="$PROJECT_DIR$/../Human Resources/.idea/Human Resources.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Inventory/.idea/Inventory.iml" filepath="$PROJECT_DIR$/../Inventory/.idea/Inventory.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Logistics/.idea/Logistics.iml" filepath="$PROJECT_DIR$/../Logistics/.idea/Logistics.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Purchasing/.idea/Purchasing.iml" filepath="$PROJECT_DIR$/../Purchasing/.idea/Purchasing.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Quickstart/.idea/Quickstart.iml" filepath="$PROJECT_DIR$/../Quickstart/.idea/Quickstart.iml" />
     </modules>
   </component>
 </project>

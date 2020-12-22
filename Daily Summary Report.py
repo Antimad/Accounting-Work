@@ -16,6 +16,7 @@ from openpyxl import load_workbook, Workbook, worksheet
 from openpyxl.formatting.rule import ColorScaleRule
 from openpyxl.styles import Font, Border, Side, Alignment, PatternFill
 
+
 files = ['Tender',
          'EMP Sale',
          'No Tax',
@@ -293,7 +294,7 @@ Tendered = EmpDisc = TaxFreeSales = RedeemedGC = PurchasedGC = CreditMemo = Tax_
 
 
 def obedience(main_report):
-    n_tendered = pd.read_excel(main_report, skiprows=5)
+    n_tendered = pd.read_excel(main_report, skiprows=5, engine='openpyxl')
     n_tendered.drop([0, 1, 2], inplace=True)
     n_tendered.set_index(['Unnamed: 0'], inplace=True)
     n_tendered.index = pd.Series(n_tendered.index).fillna(method='ffill')
@@ -402,7 +403,7 @@ if FileLocations['Location']['Directory']:
 
                     while True:
                         try:
-                            EmpDisc = pd.read_excel(EmpSales)
+                            EmpDisc = pd.read_excel(EmpSales, engine='openpyxl')
                             EmpDisc = EmpDisc.set_index(['Store Name'])
                             break
                         except NameError:
@@ -413,7 +414,7 @@ if FileLocations['Location']['Directory']:
 
                     while True:
                         try:
-                            Tax_Exempt = pd.read_excel(TaxFreeSales)
+                            Tax_Exempt = pd.read_excel(TaxFreeSales, engine='openpyxl')
                             Tax_Exempt = Tax_Exempt.set_index(['Store Name'])
                             break
                         except NameError:
@@ -425,7 +426,7 @@ if FileLocations['Location']['Directory']:
 
                     while True:
                         try:
-                            PurchasedGC = pd.read_excel(GC_Sales)
+                            PurchasedGC = pd.read_excel(GC_Sales, engine='openpyxl')
                             PurchasedGC = PurchasedGC.set_index('Store Name')
                             break
                         except NameError:
@@ -437,7 +438,7 @@ if FileLocations['Location']['Directory']:
 
                     while True:
                         try:
-                            RedeemedGC = pd.read_excel(GC_Used)
+                            RedeemedGC = pd.read_excel(GC_Used, engine='openpyxl')
                             RedeemedGC = RedeemedGC.set_index('Store Name')
                             break
                         except NameError:
@@ -449,7 +450,7 @@ if FileLocations['Location']['Directory']:
 
                     while True:
                         try:
-                            CreditMemo = pd.read_excel(CM_Sales_Issuance)
+                            CreditMemo = pd.read_excel(CM_Sales_Issuance, engine='openpyxl')
                             break
                         except NameError:
                             print("The Credit Memos should be named 'CM Report' only")
@@ -481,7 +482,7 @@ if CreditMemo is None:
     CreditMemo = EmptyDF
     print('No CreditMemo file found')
 
-Tax = pd.read_excel(TaxRate)
+Tax = pd.read_excel(TaxRate, engine='openpyxl')
 Tax = Tax.set_index(['Headquarters'])
 
 try:
