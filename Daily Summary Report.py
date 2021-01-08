@@ -29,6 +29,7 @@ Date = datetime.datetime.now()
 coordinates = [(x, y) for x in range(len(files)) for y in range(1)]
 FileLocations = {'File Name': [], 'Location': []}
 ReportTime = {'Year': [], 'Month': [Date.month]}
+ReportName = []
 book = []
 shelf_files = 'shelve.out'
 my_shelf = shelve.open(shelf_files)
@@ -41,7 +42,7 @@ def on_month_choice(selection):
 
 
 class FileSelector(QWidget):
-    NewFile = '%s Report 2020' % calendar.month_name[Date.month]
+    NewFile = '{0} Report {1}'.format(calendar.month_name[Date.month], datetime.datetime.now().year)
 
     def __init__(self):
         # noinspection PyArgumentList
@@ -126,13 +127,12 @@ class FileSelector(QWidget):
         # noinspection PyUnresolvedReferences
         if choice.isChecked():
             ReportTime['Year'].append(int(choice.option))
-            print(choice.option)
 
     def file_name_entrance(self):
         self.FileName.setReadOnly(True)
         self.grid_layout.addWidget(self.FileName, 0, 1, 1, 2)
 
-        self.change_btn.setText('Change')
+        self.change_btn.setText('Change Name')
         self.change_btn.clicked.connect(self.change_requested)
         self.grid_layout.addWidget(self.change_btn, 0, 0)
         try:
@@ -168,6 +168,7 @@ class FileSelector(QWidget):
                 print('Creating a new file')
         book.append(work_book)
 
+
     def change_requested(self):
         self.FileName.setReadOnly(False)
         self.grid_layout.removeWidget(self.change_btn)
@@ -179,9 +180,11 @@ class FileSelector(QWidget):
 
     def save_file(self):
         if not self.FileName.text().isspace() and self.FileName.text() != '':
-            print('no blanks here', self.FileName.text())
+            print('could not find the file', self.FileName.text())
             FileSelector.NewFile = self.FileName.text()
+            ReportName.append(self.FileName.text())
             my_shelf['current_file'] = FileSelector.NewFile
+            ReportName.append(FileSelector.NewFile)
             self.FileName.setText(FileSelector.NewFile + ' Saved!')
             work_book = Workbook()
             book.append(work_book)
@@ -213,18 +216,17 @@ if __name__ == '__main__':
 
 my_shelf.sync()
 wb = book[-1]
+try:
+    filename = ReportName[-1]
+except IndexError:
+    filename = my_shelf['current_file']
+
 Month = ReportTime['Month'][-1]
 Year = ReportTime['Year'][-1]
 
-if Month != datetime.datetime.now().month:
-    filename = '%s Report 2020' % calendar.month_name[Month]
-    wb = load_workbook(filename + '.xlsx')
-    print('should be working with the old one')
-else:
-    filename = '%s Report 2020' % calendar.month_name[Date.month]
 
 work_sheet = wb.active
-work_sheet.cell_addition = calendar.month_name[Month] + ' 2020'
+work_sheet.cell_addition = calendar.month_name[Month] + ' {0}'.format(Year)
 
 Cash_Columns = {
     'Nadeau Reports': 'D',
